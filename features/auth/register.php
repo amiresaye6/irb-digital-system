@@ -18,20 +18,37 @@ unset($_SESSION['old_data']);
     
     <style>
         :root {
-             --primary-light: #e0f2fe; /* Soft highlight */
-             --primary-base: #1e3a8a; /* Deep Royal Blue */
-             --primary-dark: #172554; /* Very Dark Blue */
-             --primary-deep: #0f172a; /* Slate 900 */
-           --bg-page: #f8fafc; /* Cool slate background */
-          --bg-surface: #ffffff; /* Pure white */
-          --text-main: #1e293b; /* Rich Slate */
-         --text-muted: #64748b; /* Soft Slate */
-          --border-light: #e2e8f0;
-           --border-dark: #cbd5e1;
-            
-            --radius-md: 16px;
-           --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+            /* 1. Primary Palette (Midnight Blue) */
+            --primary-light: #ecf5f7;
+            --primary-base: #2c3e50;
+            --primary-dark: #1a252f;
+            --primary-deep: #0f172a;
+
+            /* 2. Accent Palette (Teal) */
+            --accent-light: #d5f4f1;
+            --accent-base: #1abc9c;
+            --accent-dark: #16a085;
+
+            /* 3. Status Colors */
+            --status-approved-bg: #d5f4e6;
+            --status-approved-text: #27ae60;
+            --status-pending-bg: #fdebd0;
+            --status-pending-text: #d68910;
+            --status-rejected-bg: #fadbd8;
             --status-rejected-text: #991b1b;
+
+            /* 4. Neutrals & UI */
+            --bg-page: #ecf0f1;
+            --bg-surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-dark: #cbd5e1;
+
+            /* 5. Depth & Radius */
+            --radius-md: 16px;
+            --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+            --transition-smooth: 0.3s ease;
         }
 
         body {
