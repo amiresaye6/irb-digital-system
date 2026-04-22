@@ -13,18 +13,22 @@ unset($_SESSION['success']);
     <title>Document</title>
     <style>
         :root {
-            --primary-base: #0284c7;
-            --primary-dark: #0369a1;
-            --primary-deep: #082f49;
-            --bg-page: #f8fafc;
-            --bg-surface: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-light: #e2e8f0;
-            --radius-md: 12px;
-            --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+           --primary-light: #e0f2fe; /* Soft highlight */
+             --primary-base: #1e3a8a; /* Deep Royal Blue */
+             --primary-dark: #172554; /* Very Dark Blue */
+             --primary-deep: #0f172a; /* Slate 900 */
+           --bg-page: #f8fafc; /* Cool slate background */
+          --bg-surface: #ffffff; /* Pure white */
+          --text-main: #1e293b; /* Rich Slate */
+         --text-muted: #64748b; /* Soft Slate */
+          --border-light: #e2e8f0;
+           --border-dark: #cbd5e1;
+            
+            --radius-md: 16px;
+           --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+            --status-rejected-text: #991b1b;
         }
-
+           
         body {
             font-family: 'Cairo', sans-serif;
             background-color: var(--bg-page);

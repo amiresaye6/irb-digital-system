@@ -11,13 +11,13 @@ class Database
     public function __construct()
     {
         // Load the secret variables
-        $env = require __DIR__ . '/../includes/env.php';
+        $env = require_once __DIR__ . '/../includes/env.php';
 
-        $this->host = $env['DB_HOST'];
-        $this->user = $env['DB_USER'];
-        $this->pass = $env['DB_PASS'];
-        $this->db = $env['DB_NAME'];
-        $this->port = $env['DB_PORT'];
+        $this->host = DB_HOST;
+        $this->user = DB_USER;
+        $this->pass = DB_PASS;
+        $this->db = DB_NAME;
+        $this->port = DB_PORT;
 
         // Connect using the secure variables
         $this->conn = new mysqli($this->host, $this->user, $this->pass, $this->db, $this->port);
@@ -28,7 +28,7 @@ class Database
 
         $this->conn->set_charset("utf8mb4");
     }
-    function getconn() {
+    public function getconn() {
         return $this->conn;
     }
 
