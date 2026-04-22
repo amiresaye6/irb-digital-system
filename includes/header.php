@@ -41,9 +41,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
         <div class="main-layout">
             <?php
-            // Only show sidebar if user is logged in
             if (isset($_SESSION['user_id'])) {
-                include 'sidebar.php';
+                include __DIR__ . '/sidebar.php';
             }
             ?>
 
