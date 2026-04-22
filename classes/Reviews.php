@@ -10,7 +10,7 @@ class Reviews {
     }
 
     public function getApplicationsUnderReview() {
-        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, u.department FROM applications a JOIN users u ON a.student_id = u.id WHERE a.current_stage = 'under_review'";
+        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, u.department, a.created_at FROM applications a JOIN users u ON a.student_id = u.id WHERE a.current_stage = 'under_review' ORDER BY a.created_at DESC";
         $result = $this->db->query($sql);
         $applications = [];
         if ($result && $result->num_rows > 0) {
@@ -22,7 +22,7 @@ class Reviews {
     }
 
     public function getApplicationDetails($application_id) {
-        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, u.department FROM applications a JOIN users u ON a.student_id = u.id WHERE a.id = ?";
+        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, a.co_investigators, a.created_at, u.faculty, u.department FROM applications a JOIN users u ON a.student_id = u.id WHERE a.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $application_id);
         $stmt->execute();

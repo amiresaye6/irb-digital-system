@@ -9,6 +9,7 @@ if (!isset($_GET['application_id']) || empty($_GET['application_id'])) {
 }
 
 require_once __DIR__ . '/../../classes/Reviews.php';
+require_once __DIR__ . '/../../includes/irb_helpers.php';
 $reviewsObj = new Reviews();
 
 $application_id = intval($_GET['application_id']);
@@ -16,6 +17,14 @@ $app = $reviewsObj->getApplicationDetails($application_id);
 
 if (!$app) {
     die("البحث غير موجود.");
+}
+
+$coInvestigators = [];
+if (!empty($app['co_investigators'])) {
+    $decodedInvestigators = json_decode($app['co_investigators'], true);
+    if (is_array($decodedInvestigators)) {
+        $coInvestigators = $decodedInvestigators;
+    }
 }
 
 $reviewers = $reviewsObj->getAvailableReviewers();
@@ -31,6 +40,7 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/irb-digital-system/includes/style.css">
     <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css">
+    <link rel="stylesheet" href="/irb-digital-system/assets/css/irb-select.css">
     <style>
         .page-title {
             color: var(--primary-base);
@@ -56,7 +66,7 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
 
         .data-card {
             background: var(--bg-surface);
-            padding: 25px;
+            padding: 24px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
             border: 1px solid var(--border-light);
@@ -64,8 +74,18 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             max-width: 900px;
         }
 
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
         .info-group {
-            margin-bottom: 18px;
+            margin: 0;
+            background: linear-gradient(180deg, rgba(44, 62, 80, 0.03) 0%, rgba(255, 255, 255, 1) 100%);
+            border: 1px solid rgba(189, 195, 199, 0.55);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
         }
 
         .info-label {
@@ -82,14 +102,75 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             font-size: 1rem;
             color: var(--text-main);
             font-weight: 700;
-            padding: 10px 0;
-            border-bottom: 2px solid var(--border-light);
+            padding: 0;
+            border-bottom: 0;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             line-height: 1.4;
             word-wrap: break-word;
             overflow-wrap: break-word;
+        }
+
+        .wide-group {
+            grid-column: 1 / -1;
+        }
+
+        .detail-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--primary-light);
+            color: var(--primary-base);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .details-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .details-list li {
+            background: #fff;
+            border: 1px solid rgba(189, 195, 199, 0.65);
+            color: var(--text-main);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .details-empty {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .meta-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: var(--bg-page);
+            color: var(--primary-base);
+            border: 1px solid rgba(189, 195, 199, 0.75);
+            font-size: 0.85rem;
+            font-weight: 700;
         }
 
         .badge-serial {
@@ -153,31 +234,6 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 12px 14px;
-            border: 2px solid var(--border-light);
-            border-radius: var(--radius-md);
-            font-family: inherit;
-            background-color: var(--bg-page);
-            color: var(--text-main);
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all var(--transition-smooth);
-            cursor: pointer;
-        }
-
-        .form-select:hover {
-            border-color: var(--accent-base);
-            background-color: var(--bg-surface);
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: var(--accent-base);
-            box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
         }
 
         .button-group {
@@ -294,24 +350,72 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
 
         <!-- Application Details Card -->
         <div class="data-card">
-            <div class="info-group">
-                <span class="info-label">رقم الملف</span>
-                <span class="badge-serial"><?= htmlspecialchars($app['serial_number']) ?></span>
-            </div>
-
-            <div class="info-group">
-                <span class="info-label">عنوان البحث</span>
-                <div class="info-value">
-                    <i class="fa-solid fa-book" style="color: var(--accent-base);"></i>
-                    <?= htmlspecialchars($app['title']) ?>
+            <div class="summary-grid">
+                <div class="info-group">
+                    <span class="info-label">رقم الملف</span>
+                    <span class="badge-serial"><?= htmlspecialchars($app['serial_number']) ?></span>
                 </div>
-            </div>
 
-            <div class="info-group">
-                <span class="info-label">الباحث الرئيسي</span>
-                <div class="info-value">
-                    <i class="fa-solid fa-user-doctor" style="color: var(--primary-base);"></i>
-                    <?= htmlspecialchars($app['principal_investigator']) ?>
+                <div class="info-group">
+                    <span class="info-label">تاريخ التقديم</span>
+                    <div class="meta-row">
+                        <span class="meta-chip">
+                            <i class="fa-regular fa-calendar"></i>
+                            <?= htmlspecialchars(irb_format_arabic_date($app['created_at'])) ?>
+                        </span>
+                        <span class="meta-chip">
+                            <i class="fa-regular fa-clock"></i>
+                            <?= htmlspecialchars(irb_format_arabic_time($app['created_at'])) ?>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-group wide-group">
+                    <span class="info-label">عنوان البحث</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-book" style="color: var(--accent-base);"></i>
+                        <?= htmlspecialchars($app['title']) ?>
+                    </div>
+                </div>
+
+                <div class="info-group">
+                    <span class="info-label">الباحث الرئيسي</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-user-doctor" style="color: var(--primary-base);"></i>
+                        <?= htmlspecialchars($app['principal_investigator']) ?>
+                    </div>
+                </div>
+
+                <div class="info-group">
+                    <span class="info-label">الكلية</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-graduation-cap" style="color: var(--accent-base);"></i>
+                        <?= !empty($app['faculty']) ? htmlspecialchars($app['faculty']) : 'غير متوفر' ?>
+                    </div>
+                </div>
+
+                <div class="info-group wide-group">
+                    <span class="info-label">القسم</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-building-columns" style="color: var(--primary-base);"></i>
+                        <?= !empty($app['department']) ? htmlspecialchars($app['department']) : 'غير متوفر' ?>
+                    </div>
+                </div>
+
+                <div class="info-group wide-group">
+                    <span class="info-label">الباحثون الآخرون</span>
+                    <?php if (!empty($coInvestigators)): ?>
+                        <ul class="details-list">
+                            <?php foreach ($coInvestigators as $coInvestigator): ?>
+                                <li>
+                                    <i class="fa-solid fa-user"></i>
+                                    <?= htmlspecialchars($coInvestigator) ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else: ?>
+                        <div class="details-empty">لا يوجد باحثون آخرون مسجلون لهذا البحث.</div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -348,7 +452,7 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
                     <label class="form-label" for="reviewer_id">
                         المراجع المتخصص
                     </label>
-                    <select name="reviewer_id" id="reviewer_id" required class="form-select">
+                    <select name="reviewer_id" id="reviewer_id" required class="form-select irb-select">
                         <option value="">-- اختر المراجع --</option>
                         <?php foreach ($reviewers as $rev): ?>
                             <?php
@@ -385,5 +489,6 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             </form>
         </div>
     </div>
+
 </body>
 </html>
