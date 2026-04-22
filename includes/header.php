@@ -1,0 +1,50 @@
+<?php
+// Ensure session is started if not already
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRB System | نظام إدارة الموافقات البحثية</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="/irb-digital-system/includes/style.css">
+    <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css">
+</head>
+
+<body>
+    <div class="app-wrapper">
+
+        <header class="top-navbar">
+            <div class="nav-brand">
+                <i class="fa-solid fa-microscope"></i>
+                <h1>لجنة مراجعة الأبحاث (IRB)</h1>
+            </div>
+
+            <div class="nav-user">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <span class="user-greeting">مرحباً، <?= htmlspecialchars($_SESSION['full_name']); ?></span>
+                    <a href="logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn-login"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</a>
+                <?php endif; ?>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <?php
+            // Only show sidebar if user is logged in
+            if (isset($_SESSION['user_id'])) {
+                include 'sidebar.php';
+            }
+            ?>
+
+            <main class="content-area"></main>
