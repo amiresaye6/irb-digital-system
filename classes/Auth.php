@@ -1,0 +1,1 @@
+<!-- class with db fields and crud over them -->
