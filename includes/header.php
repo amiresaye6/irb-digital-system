@@ -32,9 +32,9 @@ if (session_status() === PHP_SESSION_NONE) {
             <div class="nav-user">
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <span class="user-greeting">مرحباً، <?= htmlspecialchars($_SESSION['full_name']); ?></span>
-                    <a href="logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
+                    <a href="/irb-digital-system/features/auth/logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> خروج</a>
                 <?php else: ?>
-                    <a href="login.php" class="btn-login"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</a>
+                    <a href="/irb-digital-system/features/auth/login.php" class="btn-login"><i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول</a>
                 <?php endif; ?>
             </div>
         </header>
