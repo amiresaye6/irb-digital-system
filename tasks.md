@@ -523,3 +523,9 @@ Now that we have all 7 Epics, here is how you can finalize the work with your te
 3.  **Member 3 (The FinTech):** **Epic 3** (Payment Gateway integration and Receipts).
 4.  **Member 4 (The Reviewer):** **Epic 4 & 5** (Sample Size logic and Blind Review interface).
 5.  **Member 5 (The Closer):** **Epic 6** (Manager Approval logic and PDF Certificate generation).
+
+- Donia, Epic 1: Identity & Access Management (IAM)
+- Azzazy,Epic 2: Research Submission Engine
+- Amir,Epic 3: Financial Transaction System & Epic 4: Technical Evaluation (Sample Size)
+- Maula,"Epic 5: The ""Blind Review"" Workflow"
+- Hager,Epic 6: Final Approval & Certification & Epic 7: System Integrity & Alerts
