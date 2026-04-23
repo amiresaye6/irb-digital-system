@@ -1,86 +1,219 @@
 <?php
-//require_once __DIR__ . '/../../includes/header.php';
-//require_once __DIR__ . '/../../includes/sidebar.php';
-session_start();
-$errors = $_SESSION['form_errors']??[];
-$data = $_SESSION['form_data']??[];
+ require_once __DIR__ . '/../../includes/sidebar.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$errors = $_SESSION['form_errors'] ?? [];
+$data = $_SESSION['form_data'] ?? [];
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add User Form</title>
-    <link rel="stylesheet" href="/irb-digital-system/includes/style.css" />
+    <title>تقديم طلب بحث جديد</title>
+    <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css" />
+    <style>
+        /* تنسيقات مخصصة لنموذج التقديم باستخدام الـ Variables بتاعتك */
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Cairo', sans-serif;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: var(--bg-surface);
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border-top: 5px solid var(--accent-base);
+        }
+
+        .form-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 15px;
+        }
+
+        .form-header h2 {
+            color: var(--primary-base);
+            margin: 0;
+        }
+
+        .error-box {
+            background-color: var(--alert-light);
+            color: var(--alert-base);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            border-right: 5px solid var(--alert-base);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: 700;
+            color: var(--primary-base);
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], 
+        input[type="file"] {
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            transition: var(--transition-smooth);
+            background: var(--primary-light);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-base);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .file-input-wrapper {
+            background: #fcfcfc;
+            padding: 15px;
+            border: 1px dashed var(--border-dark);
+            border-radius: var(--radius-md);
+        }
+
+        .btn-submit {
+            background-color: var(--accent-base);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--accent-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
-    <form action="saveData.php" method="POST" enctype="multipart/form-data">
-        <div>
-            <?php
-                    if(is_array($errors) && count($errors) > 0){
-                        foreach($errors as $error){
-                            echo "<h5>$error</h5>";
-                        }
-                    }
-      
-            ?>
+<div class="form-card">
+    <div class="form-header">
+        <h2>نموذج تقديم مقترح بحثي</h2>
+        <p style="color: var(--text-muted);">يرجى ملء كافة البيانات ورفع الملفات المطلوبة بعناية.</p>
+    </div>
+
+    <?php if (!empty($errors)): ?>
+        <div class="error-box">
+            <ul style="margin:0; padding-right: 20px;">
+                <?php foreach ($errors as $error): ?>
+                    <li><?= htmlspecialchars($error) ?></li>
+                <?php endforeach; ?>
+            </ul>
         </div>
-        <div class="row">
-            <div class="field-group">
+    <?php endif; ?>
+
+    <form action="saveData.php" method="POST" enctype="multipart/form-data">
+        <div class="grid-container">
+            <div class="field-group full-width">
                 <label>عنوان البحث</label>
-                <input type="text" name="title" value="<?= htmlspecialchars($data['title'] ?? '') ?>" minlength="2" maxlength="80" required placeholder="اكتب هنا عنوان البحث">
+                <input type="text" name="title" value="<?= htmlspecialchars($data['title'] ?? '') ?>" minlength="3" required placeholder="اكتب هنا عنوان البحث الكامل">
             </div>
+
             <div class="field-group">
                 <label>اسم الباحث الرئيسي</label>
-                <input type="text" name="principal_investigator" value="<?= htmlspecialchars($data['principal_investigator'] ?? '') ?>" minlength="2" maxlength="80" required placeholder="اكتب اسم الباحث الرئيسى هنا">
+                <input type="text" name="principal_investigator" value="<?= htmlspecialchars($data['principal_investigator'] ?? '') ?>" minlength="3" required>
             </div>
+
             <div class="field-group">
-                <label>المشاركون فى البحث</label>
-                <input type="text" name="co_investigators" value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>" minlength="2" required placeholder="اكتب اسماء المشاركون فى البحث هنا مفصول بينهم بعلامة فاصلة ( , )">
+                <label>المشاركون في البحث (مفصولين بفاصلة)</label>
+                <input type="text" name="co_investigators" placeholder="مثال : محمد رمضان , احمد العوضى" value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>" minlength="3" required>
             </div>
+
             <div class="file-input-wrapper">
-                <label>البحث</label>
+                <label>ملف البحث (Research)</label>
                 <input type="file" required name="research">
             </div>
+
             <div class="file-input-wrapper">
-                <label>نموذج البرونوكول</label>
+                <label>نموذج البروتوكول</label>
                 <input type="file" required name="protocol">
             </div>
+
             <div class="file-input-wrapper">
-                <label>اقرار تضارب المصالح</label>
+                <label>إقرار تضارب المصالح</label>
                 <input type="file" required name="conflict_of_interest">
             </div>
+
             <div class="file-input-wrapper">
                 <label>قائمة مراجعة IRB</label>
                 <input type="file" required name="irb_checklist">
             </div>
+
             <div class="file-input-wrapper">
                 <label>موافقة الباحث الرئيسي</label>
                 <input type="file" required name="pi_consent">
             </div>
+
             <div class="file-input-wrapper">
                 <label>موافقة المريض</label>
                 <input type="file" required name="patient_consent">
             </div>
+
             <div class="file-input-wrapper">
                 <label>موافقة الصور والخزعات</label>
                 <input type="file" required name="photos_biopsies_consent">
             </div>
+
             <div class="file-input-wrapper">
                 <label>طلب مراجعة البروتوكول</label>
                 <input type="file" required name="protocol_review_app">
             </div>
         </div>
-        <button type="submit" class="btn-add">تقديم الطلب</button>
+
+        <button type="submit" class="btn-submit">إرسال الطلب للمراجعة</button>
     </form>
 </div>
+<script>
+document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', function() {
+        if (this.files[0]) {
+            const fileSize = this.files[0].size; 
+            const maxSize = 4 * 1024 * 1024; 
 
+            if (fileSize > maxSize) {
+                alert("خطأ: حجم ملف (" + this.previousElementSibling.innerText + ") كبير جداً. الحد الأقصى المسموح به هو 4 ميجابايت فقط.");
+                this.value = ""; 
+            }
+        }
+    });
+});
+</script>
 </body>
 </html>
-<?php
-require_once __DIR__ .'/../../includes/footer.php'; 
-?>

@@ -56,8 +56,8 @@ CREATE TABLE documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT,
     document_type ENUM(
-        'protocol', 'conflict_of_interest', 'irb_checklist',
-        'pi_consent', 'patient_consent', 'photos_biopsies_consent'
+        'research','protocol', 'conflict_of_interest', 'irb_checklist',
+        'pi_consent', 'patient_consent', 'photos_biopsies_consent','protocol_review_app'
     ),
     file_path VARCHAR(255),
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -158,7 +158,12 @@ INSERT INTO documents (application_id, document_type, file_path) VALUES
 (3, 'protocol', 'uploads/seed/dummy_protocol.pdf'), 
 (4, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
 (5, 'protocol', 'uploads/seed/dummy_protocol.pdf'), 
-(6, 'protocol', 'uploads/seed/dummy_protocol.pdf');
+(6, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(1, 'research', 'uploads/seed/dummy_research.pdf'),
+(1, 'protocol_review_app', 'uploads/seed/dummy_protocol_review_app.pdf'),
+(2, 'research', 'uploads/seed/dummy_research_2.pdf'),
+(3, 'protocol_review_app', 'uploads/seed/dummy_protocol_review_app_3.pdf'),
+(4, 'research', 'uploads/seed/dummy_research_4.pdf');
 
 -- 6. Seed Payments
 INSERT INTO payments (application_id, phase, amount, provider, transaction_reference, status, paid_at) VALUES 
