@@ -5,7 +5,7 @@
         </li>
 
         <?php if($_SESSION['role'] === 'student'): ?>
-            <li><a href="submit_application.php"><i class="fa-solid fa-file-circle-plus"></i> تقديم بحث جديد</a></li>
+            <li><a href="/irb-digital-system/features/student/apply.php"><i class="fa-solid fa-file-circle-plus"></i> تقديم بحث جديد</a></li>
             <li><a href="my_applications.php"><i class="fa-solid fa-folder-open"></i> أبحاثي</a></li>
         <?php endif; ?>
 
