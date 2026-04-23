@@ -71,11 +71,13 @@ CREATE TABLE payments (
     amount DECIMAL(10,2),
     provider VARCHAR(50),
     transaction_reference VARCHAR(100),
+    gateway_transaction_id VARCHAR(100) NULL,
     status ENUM('pending','completed','failed') DEFAULT 'pending',
+    gateway_response JSON NULL,
     paid_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
 );
-
 CREATE TABLE reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT,
@@ -161,15 +163,15 @@ INSERT INTO documents (application_id, document_type, file_path) VALUES
 (6, 'protocol', 'uploads/seed/dummy_protocol.pdf');
 
 -- 6. Seed Payments
-INSERT INTO payments (application_id, phase, amount, provider, transaction_reference, status, paid_at) VALUES 
-(1, 'initial', 500.00, 'Fawry', 'FW1001', 'completed', '2026-03-02 10:00:00'),
-(1, 'sample', 350.00, 'Fawry', 'FW1002', 'completed', '2026-03-05 12:00:00'),
-(2, 'initial', 500.00, 'Paymob', 'PM2001', 'completed', '2026-04-11 09:00:00'),
-(2, 'sample', 800.00, 'Fawry', 'FW2002', 'completed', '2026-04-14 10:00:00'),
-(3, 'initial', 500.00, 'InstaPay', 'IP3001', 'completed', '2026-04-16 11:00:00'),
-(4, 'initial', 500.00, 'Fawry', 'FW4001', 'completed', '2026-02-21 10:00:00'),
-(4, 'sample', 400.00, 'Fawry', 'FW4002', 'completed', '2026-02-25 10:00:00'),
-(5, 'initial', 500.00, 'Fawry', NULL, 'pending', NULL);
+INSERT INTO payments (application_id, phase, amount, provider, transaction_reference, gateway_transaction_id, status, gateway_response, paid_at, created_at) VALUES 
+(1, 'initial', 500.00, 'Fawry', 'FW1001', '511625001', 'completed', '{"message": "Approved"}', '2026-03-02 10:00:00', '2026-03-02 09:50:00'),
+(1, 'sample', 350.00, 'Fawry', 'FW1002', '511625002', 'completed', '{"message": "Approved"}', '2026-03-05 12:00:00', '2026-03-05 11:45:00'),
+(2, 'initial', 500.00, 'Paymob', 'PM2001', '511625436', 'completed', '{"message": "Approved", "source_data": {"type": "card", "sub_type": "MasterCard"}}', '2026-04-11 09:00:00', '2026-04-11 08:55:00'),
+(2, 'sample', 800.00, 'Fawry', 'FW2002', '511625004', 'completed', '{"message": "Approved"}', '2026-04-14 10:00:00', '2026-04-14 09:50:00'),
+(3, 'initial', 500.00, 'InstaPay', 'IP3001', '511625005', 'completed', '{"message": "Approved"}', '2026-04-16 11:00:00', '2026-04-16 10:55:00'),
+(4, 'initial', 500.00, 'Fawry', 'FW4001', '511625006', 'completed', '{"message": "Approved"}', '2026-02-21 10:00:00', '2026-02-21 09:55:00'),
+(4, 'sample', 400.00, 'Fawry', 'FW4002', '511625007', 'completed', '{"message": "Approved"}', '2026-02-25 10:00:00', '2026-02-25 09:50:00'),
+(5, 'initial', 500.00, 'Paymob', 'PM5001', '511676577', 'pending', NULL, NULL, '2026-04-23 19:43:43');
 
 -- 7. Seed Reviews
 INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision, comments, reviewed_at) VALUES 
