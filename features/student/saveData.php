@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Success insert files
     $research_dir = __DIR__ . "/../../uploads/researches/";
-    $documents_dir = __DIR__ . "/../../uploads/documents/";
+    $documents_dir = __DIR__ . "/../../uploads/applications/$last_id/";
 
     if (!is_dir($research_dir)) mkdir($research_dir, 0755, true);
     if (!is_dir($documents_dir)) mkdir($documents_dir, 0755, true);
