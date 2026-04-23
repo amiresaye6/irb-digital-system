@@ -23,7 +23,7 @@
                 <span class="category-label">منطقة الطالب</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/submit_application.php" class="menu-link">
+                <a href="/irb-digital-system/features/student/apply.php" class="menu-link">
                     <i class="fa-solid fa-file-circle-plus"></i>
                     <span>تقديم بحث جديد</span>
                 </a>
