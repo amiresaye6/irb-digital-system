@@ -3,6 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'reviewer') {
+    header("Location: /irb-digital-system/login.php");
+    exit;
+}
+
 if (!isset($_GET['application_id']) || empty($_GET['application_id'])) {
     header("Location: assign_reviewers.php");
     exit;
