@@ -11,6 +11,10 @@ function irb_sidebar_is_active($paths)
     }
     return false;
 }
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 
 <aside class="sidebar">
