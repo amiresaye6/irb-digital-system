@@ -1,3 +1,17 @@
+<?php
+$currentSidebarPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
+
+function irb_sidebar_is_active($paths)
+{
+    global $currentSidebarPath;
+    foreach ((array) $paths as $path) {
+        if ($currentSidebarPath === $path) {
+            return true;
+        }
+    }
+    return false;
+}
+?>
 
 <aside class="sidebar">
     <div class="sidebar-header">
@@ -11,7 +25,7 @@
     <ul class="sidebar-menu">
         <!-- Universal Links -->
         <li class="menu-item">
-            <a href="/irb-digital-system/dashboard.php" class="menu-link">
+            <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
                 <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
             </a>
@@ -23,13 +37,13 @@
                 <span class="category-label">منطقة الطالب</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/submit_application.php" class="menu-link">
+                <a href="/irb-digital-system/submit_application.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/submit_application.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-file-circle-plus"></i>
                     <span>تقديم بحث جديد</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/my_applications.php" class="menu-link">
+                <a href="/irb-digital-system/my_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/my_applications.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-folder-open"></i>
                     <span>أبحاثي</span>
                 </a>
@@ -42,19 +56,19 @@
                 <span class="category-label">منطقة الإدارة</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/pending_applications.php" class="menu-link">
+                <a href="/irb-digital-system/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/pending_applications.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>الطلبات قيد المراجعة</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/reviewer/assign_reviewers.php" class="menu-link">
+                <a href="/irb-digital-system/features/reviewer/assign_reviewers.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/assign_reviewers.php', '/irb-digital-system/features/reviewer/assign_form.php', '/irb-digital-system/features/reviewer/submit_assignment.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-user-check"></i>
                     <span>تعيين المراجعين</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/admin_dashboard.php" class="menu-link">
+                <a href="/irb-digital-system/admin_dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/admin_dashboard.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-gauge"></i>
                     <span>لوحة معلومات الإدارة</span>
                 </a>
@@ -67,13 +81,13 @@
                 <span class="category-label">منطقة ضابط العينات</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/sample_requests.php" class="menu-link">
+                <a href="/irb-digital-system/sample_requests.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/sample_requests.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-calculator"></i>
                     <span>حساب حجم العينة</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/sample_statistics.php" class="menu-link">
+                <a href="/irb-digital-system/sample_statistics.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/sample_statistics.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-chart-bar"></i>
                     <span>إحصائيات العينات</span>
                 </a>
@@ -86,13 +100,13 @@
                 <span class="category-label">منطقة المراجع</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/assigned_reviews.php" class="menu-link">
+                <a href="/irb-digital-system/assigned_reviews.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/assigned_reviews.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-microscope"></i>
                     <span>الأبحاث المسندة</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/my_reviews.php" class="menu-link">
+                <a href="/irb-digital-system/my_reviews.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/my_reviews.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-list-check"></i>
                     <span>مراجعاتي</span>
                 </a>
@@ -105,13 +119,13 @@
                 <span class="category-label">منطقة المدير</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/final_approvals.php" class="menu-link">
+                <a href="/irb-digital-system/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/final_approvals.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-stamp"></i>
                     <span>الاعتمادات النهائية</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/system_reports.php" class="menu-link">
+                <a href="/irb-digital-system/system_reports.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/system_reports.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>التقارير والإحصائيات</span>
                 </a>
@@ -202,20 +216,20 @@
         display: block;
     }
 
-    .menu-item {
+    .sidebar .sidebar-menu .menu-item {
         margin-bottom: 3px;
         padding: 0 8px;
     }
 
-    .menu-link {
+    .sidebar .sidebar-menu li .menu-link {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
+        gap: 10px;
+        padding: 11px 13px;
         color: rgba(255, 255, 255, 0.85);
         text-decoration: none;
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.89rem;
         transition: all var(--transition-smooth);
         border-radius: var(--radius-md) 0 0 var(--radius-md);
         border-left: 4px solid transparent;
@@ -223,7 +237,7 @@
         overflow: hidden;
     }
 
-    .menu-link::before {
+    .sidebar .sidebar-menu li .menu-link::before {
         content: '';
         position: absolute;
         top: 0;
@@ -235,9 +249,9 @@
         transition: opacity var(--transition-smooth);
     }
 
-    .menu-link i {
-        font-size: 1.2rem;
-        width: 22px;
+    .sidebar .sidebar-menu li .menu-link i {
+        font-size: 1.02rem;
+        width: 18px;
         text-align: center;
         color: rgba(255, 255, 255, 0.8);
         transition: all var(--transition-smooth);
@@ -245,25 +259,46 @@
         z-index: 1;
     }
 
-    .menu-link span {
+    .sidebar .sidebar-menu li .menu-link span {
         position: relative;
         z-index: 1;
     }
 
-    .menu-link:hover {
+    .sidebar .sidebar-menu li .menu-link:hover {
         background-color: rgba(26, 188, 156, 0.2);
-        color: #ffffff;
+        color: rgba(255, 255, 255, 0.96);
         border-left: 4px solid var(--accent-base);
         transform: translateX(4px);
     }
 
-    .menu-link:hover::before {
+    .sidebar .sidebar-menu li .menu-link.is-active {
+        background-color: rgba(26, 188, 156, 0.2);
+        color: rgba(255, 255, 255, 0.96);
+        border-left: 4px solid var(--accent-base);
+        transform: translateX(4px);
+    }
+
+    .sidebar .sidebar-menu li .menu-link:hover::before {
         opacity: 1;
     }
 
-    .menu-link:hover i {
+    .sidebar .sidebar-menu li .menu-link.is-active::before {
+        opacity: 1;
+    }
+
+    .sidebar .sidebar-menu li .menu-link:hover span,
+    .sidebar .sidebar-menu li .menu-link.is-active span {
+        color: rgba(255, 255, 255, 0.96);
+    }
+
+    .sidebar .sidebar-menu li .menu-link:hover i {
         color: var(--accent-base);
         transform: scale(1.15);
+    }
+
+    .sidebar .sidebar-menu li .menu-link.is-active i {
+        color: var(--accent-base);
+        transform: scale(1.1);
     }
 
     .sidebar-footer {
