@@ -31,6 +31,8 @@ if (session_status() === PHP_SESSION_NONE) {
         <li class="menu-item">
             <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
                 <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'):?>
+                <a href="/irb-digital-system/features/sample_officer/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
             <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):?>
                 <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
             <?php else:?>
@@ -64,6 +66,18 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
             <li class="menu-item">
+                <a href="/irb-digital-system/features/student/pending_payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/pending_payments.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <span>المدفوعات المعلقة</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/student/payment_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/payment_history.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span>سجل المدفوعات</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/features/student/student_notifications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/student_notifications.php', '/irb-digital-system/features/student/notification_details.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-bell"></i>
                     <span>الإشعارات</span>
@@ -92,6 +106,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
             <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>إدارة المدفوعات</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/admin_dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/admin_dashboard.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-gauge"></i>
                     <span>لوحة معلومات الإدارة</span>
@@ -100,20 +120,14 @@ if (session_status() === PHP_SESSION_NONE) {
         <?php endif; ?>
 
         <!-- Sample Officer Role Links -->
-        <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'): ?>
+       <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة ضابط العينات</span>
             </li>
-            <li class="menu-item">
-                <a href="/irb-digital-system/sample_requests.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/sample_requests.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-calculator"></i>
-                    <span>حساب حجم العينة</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="/irb-digital-system/sample_statistics.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/sample_statistics.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-chart-bar"></i>
-                    <span>إحصائيات العينات</span>
+           <li class="menu-item">
+                <a href="/irb-digital-system/features/sample_officer/requests_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/sample_officer/requests_history.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>سجل العينات المنجزة</span>
                 </a>
             </li>
         <?php endif; ?>
