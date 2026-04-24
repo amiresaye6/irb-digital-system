@@ -22,7 +22,7 @@ class Reviews {
     }
 
     public function getApplicationDetails($application_id) {
-        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, a.co_investigators, a.created_at, u.faculty, u.department FROM applications a JOIN users u ON a.student_id = u.id WHERE a.id = ?";
+        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, a.co_investigators, a.is_blinded, a.created_at, u.faculty, u.department FROM applications a JOIN users u ON a.student_id = u.id WHERE a.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $application_id);
         $stmt->execute();

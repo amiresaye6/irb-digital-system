@@ -29,8 +29,7 @@ if (!empty($app['co_investigators'])) {
     if (is_array($decoded)) $coInvestigators = $decoded;
 }
 
-$isBlinded = !empty($review['is_blinded']);
-$piName = $isBlinded ? "معلومات محجوبة" : $app['principal_investigator'];
+$isBlinded = !empty($app['is_blinded']);
 $isFinalApproved = ($review['current_stage'] === 'approved');
 
 $docLabels = [
@@ -174,15 +173,17 @@ $success_msg = $_GET['success'] ?? null;
                 <div class="info-group">
                     <span class="info-label">الباحث الرئيسي</span>
                     <?php if ($isBlinded): ?>
-                        <div class="redacted-name"><i class="fa-solid fa-user-secret"></i> <?= $piName ?></div>
+                        <div class="redacted-name"><i class="fa-solid fa-user-secret"></i> معلومات محجوبة</div>
                     <?php else: ?>
-                        <div class="info-value"><i class="fa-solid fa-user-doctor" style="color:var(--primary-base)"></i> <?= htmlspecialchars($piName) ?></div>
+                        <div class="info-value"><i class="fa-solid fa-user-doctor" style="color:var(--primary-base)"></i> <?= htmlspecialchars($app['principal_investigator']) ?></div>
                     <?php endif; ?>
                 </div>
                 <div class="info-group">
                     <span class="info-label">الكلية / القسم</span>
-                    <div class="info-value"><i class="fa-solid fa-building-columns" style="color:var(--primary-base)"></i> <?= !empty($app['faculty']) ? htmlspecialchars($app['faculty']) : 'غير متوفر' ?> — <?= !empty($app['department']) ? htmlspecialchars($app['department']) : '' ?></div>
+                        <div class="info-value"><i class="fa-solid fa-building-columns" style="color:var(--primary-base)"></i> <?= !empty($app['faculty']) ? htmlspecialchars($app['faculty']) : 'غير متوفر' ?> — <?= !empty($app['department']) ? htmlspecialchars($app['department']) : '' ?></div>
+                
                 </div>
+                <?php if (!$isBlinded): ?>
                 <div class="info-group wide-group">
                     <span class="info-label">الباحثون المشاركون</span>
                     <?php if (!empty($coInvestigators)): ?>
@@ -195,6 +196,7 @@ $success_msg = $_GET['success'] ?? null;
                         <div class="details-empty">لا يوجد باحثون مشاركون</div>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
 
