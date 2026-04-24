@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/../../init.php';
-session_start();
-
+require_once __DIR__ . '/../../includes/sidebar.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $errors = [];
 
-    // Validation: Basic Fields
+    // Validation
     if (empty($_POST['title'])) {
         array_push($errors, "عنوان البحث فارغ");
     } elseif (strlen($_POST['title']) < 3) {
@@ -26,15 +28,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         array_push($errors, "حقل المشاركين في البحث فارغ");
     }
 
-    //  Validation Files 
     $allowed_types = [
         'application/pdf',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
-    $max_size = 10 * 1024 * 1024; // 10MB
+    $max_size = 4 * 1024 * 1024; 
 
-    // research + 7 documents = 8 files total
     $file_fields = [
         'research'               => 'ملف البحث',
         'protocol'               => 'نموذج البروتوكول',
@@ -74,9 +74,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $co_investigators_array = array_values(array_map('trim', explode(',', $_POST['co_investigators'])));
     $co_investigators_json  = json_encode($co_investigators_array, JSON_UNESCAPED_UNICODE);
 
-    $sql  = "INSERT INTO applications (title, principal_investigator, co_investigators) VALUES (?, ?, ?)";
+    $student_id = $_SESSION['user_id'] ;
+    $database = new Database();
+    $sql  = "INSERT INTO applications (title, principal_investigator, co_investigators, student_id) VALUES (?, ?, ?, ?)";
     $stmt = $database->conn->prepare($sql);
-    $stmt->bind_param("sss", $title, $principal_investigator, $co_investigators_json);
+    $stmt->bind_param("sssi", $title, $principal_investigator, $co_investigators_json, $student_id);
     $stmt->execute();
     $stmt->close();
 
@@ -95,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Success insert files
     $research_dir = __DIR__ . "/../../uploads/researches/";
-    $documents_dir = __DIR__ . "/../../uploads/documents/";
+    $documents_dir = __DIR__ . "/../../uploads/applications/$last_id/";
 
     if (!is_dir($research_dir)) mkdir($research_dir, 0755, true);
     if (!is_dir($documents_dir)) mkdir($documents_dir, 0755, true);
@@ -119,6 +121,116 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['form_errors'] = [];
         $_SESSION['form_data']   = [];
 
-        echo "<h1>تم تقديم الطلب بنجاح — رقم الطلب: $serial_number</h1>";
-    }
+    
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تم تقديم الطلب بنجاح</title>
+    <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css" />
+    <style>
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Cairo', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .success-card {
+            background: var(--bg-surface);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border-top: 8px solid var(--success-base);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            background: var(--success-light);
+            color: var(--success-base);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            margin: 0 auto 20px;
+        }
+
+        h1 {
+            color: var(--primary-base);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .serial-badge {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary-base);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 800;
+            font-size: 1.2rem;
+            border: 1px dashed var(--primary-base);
+            margin: 15px 0;
+        }
+
+        p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 30px;
+            background-color: var(--accent-base);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-back:hover {
+            background-color: var(--accent-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="success-card">
+    <div class="icon-box">✓</div>
+    <h1>تم استلام طلبك بنجاح!</h1>
+    <p>لقد تم تسجيل طلب البحث الخاص بك في النظام. يرجى الاحتفاظ برقم المرجع الموضح أدناه للمتابعة:</p>
+    
+    <div class="serial-badge">
+        <?= $serial_number ?>
+    </div>
+
+    <p>سيتم مراجعة الملفات المرفقة من قبل لجنة الأخلاقيات (IRB) وإشعارك بالنتيجة قريباً.</p>
+    
+    <a href="apply.php" class="btn-back">تقديم طلب آخر</a>
+</div>
+
+</body>
+</html>
+
+<?php
+} 
 ?>

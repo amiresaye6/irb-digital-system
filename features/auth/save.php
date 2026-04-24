@@ -13,8 +13,8 @@ $department= trim($_POST['department']   ?? '');
 $errors = [];
 $allowed_types = ['image/jpeg', 'image/jpg', 'image/png'];
 
-if(strlen($full_name) < 6) {
-    $errors[] = "الاسم بالكامل يجب أن يكون أكثر من 6 أحرف";
+if(strlen($full_name) < 10) {
+    $errors[] = "الاسم بالكامل يجب أن يكون أكثر من 10 أحرف";
 }
 if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors[] = "البريد الإلكتروني غير صالح";
