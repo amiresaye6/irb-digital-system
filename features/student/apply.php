@@ -6,7 +6,6 @@ if (session_status() === PHP_SESSION_NONE) {
 $errors = $_SESSION['form_errors'] ?? [];
 $data = $_SESSION['form_data'] ?? [];
 ?>
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -14,15 +13,48 @@ $data = $_SESSION['form_data'] ?? [];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقديم طلب بحث جديد</title>
     <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* تنسيقات مخصصة لنموذج التقديم باستخدام الـ Variables بتاعتك */
         body {
             background-color: var(--bg-page);
             font-family: 'Cairo', sans-serif;
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 50px;
+            margin-right: 100px;
         }
+
+        .page-header {
+            max-width: 900px;
+            margin: 0 auto 10px auto;
+            text-align: right;
+        }
+
+        .page-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+        }
+
+        .page-title-container h1 {
+            color: var(--primary-base);
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .page-title-container i {
+            color: var(--accent-base); 
+            font-size: 1.8rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-size: 1.1rem;
+        }
+        /* --------------------------- */
 
         .form-card {
             background: var(--bg-surface);
@@ -122,6 +154,14 @@ $data = $_SESSION['form_data'] ?? [];
 </head>
 
 <body>
+
+<div class="page-header">
+    <div class="page-title-container">
+        <h1>تقديم بحث جديد</h1>
+        <i class="fa-solid fa-file-circle-plus"></i>
+    </div>
+    <p class="page-subtitle">يرجى تعبئة بيانات المقترح البحثي ورفع المرفقات اللازمة لبدء المراجعة</p>
+</div>
 
 <div class="form-card">
     <div class="form-header">
