@@ -75,9 +75,35 @@ if ($merchant_order_id) {
             $phase = $paymentRecord['phase'];
             $nextStage = ($phase === 'initial') ? 'awaiting_sample_calc' : 'under_review';
 
+            // Update application stage
             $db->updateById('applications', $application_id, [
                 'current_stage' => $nextStage
             ]);
+
+            // Fetch application data needed for logs and notifications
+            $appData = $db->selectById('applications', $application_id);
+            if ($appData) {
+                $serialNumber = $appData['serial_number'];
+                $studentId = $appData['student_id'];
+
+                // 1. Log the Action
+                $phaseText = ucfirst($phase);
+                $logAction = "$phaseText Payment completed for Serial [$serialNumber]";
+                $db->insert('logs', [
+                    'application_id' => $application_id,
+                    'user_id' => $studentId,
+                    'action' => $logAction
+                ]);
+
+                // 2. Notify the Student
+                $arabicPhase = ($phase === 'initial') ? 'التقديم المبدئية' : 'مراجعة حجم العينة';
+                $notificationMsg = "تم تأكيد استلام رسوم ($arabicPhase) بنجاح لطلبك رقم $serialNumber.";
+                $db->insert('notifications', [
+                    'user_id' => $studentId,
+                    'message' => $notificationMsg,
+                    'channel' => 'email'
+                ]);
+            }
         }
     }
 }
