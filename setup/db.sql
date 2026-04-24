@@ -10,6 +10,7 @@ USE irb_system;
 DROP TABLE IF EXISTS logs;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS certificates;
+DROP TABLE IF EXISTS review_comments;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS documents;
@@ -124,11 +125,13 @@ CREATE TABLE certificates (
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
+    application_id INT NULL,
     message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     channel ENUM('system','email','sms'),
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL
 );
 
 CREATE TABLE logs (
@@ -329,6 +332,14 @@ INSERT INTO logs (application_id, user_id, action, created_at) VALUES
 (8, 13, 'تم تقديم البحث بنجاح', '2026-01-15 10:30:00'),
 (8, 7, 'تم حساب حجم العينة (1000)', '2026-01-20 09:45:00'),
 (8, 11, 'اعتماد نهائي وإصدار شهادة IRB', '2026-02-01 10:00:00');
+
+-- 11. Seed Notifications
+INSERT INTO notifications (user_id, application_id, message, channel, is_read, created_at) VALUES 
+(2, 2, 'بحثك (IRB-2026-002) يحتاج إلى تعديلات بناءً على ملاحظات المراجعة الفنية. يرجى مراجعة التعليقات وتحديث المستندات.', 'system', 0, '2026-04-18 09:05:00'),
+(4, 4, 'تم رفض بحثك (IRB-2026-004). يرجى مراجعة أسباب الرفض في تفاصيل البحث.', 'system', 1, '2026-02-28 12:05:00'),
+(1, 1, 'تهانينا! تم اعتماد بحثك (IRB-2026-001) نهائياً وإصدار شهادة IRB.', 'system', 1, '2026-03-15 10:05:00'),
+(13, 8, 'تهانينا! تم اعتماد بحثك (IRB-2026-008) نهائياً وإصدار شهادة IRB.', 'system', 0, '2026-02-01 10:05:00'),
+(1, 5, 'بحثك (IRB-2026-005) بانتظار سداد رسوم التقديم الأولية.', 'system', 0, '2026-04-20 17:00:00');
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;

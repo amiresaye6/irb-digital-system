@@ -33,19 +33,33 @@ function irb_sidebar_is_active($paths)
 
         <!-- Student Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+            <?php
+                require_once __DIR__ . '/../classes/Applications.php';
+                $sidebarAppObj = new Applications();
+                $sidebarUnread = $sidebarAppObj->getUnreadNotificationCount($_SESSION['user_id']);
+            ?>
             <li class="menu-category">
                 <span class="category-label">منطقة الطالب</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/student/apply.php" class="menu-link <?= irb_sidebar_is_active(['/irb-digital-system/features/student/apply.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/apply.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/apply.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-file-circle-plus"></i>
                     <span>تقديم بحث جديد</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/my_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/my_applications.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/student_researches.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/student_researches.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-folder-open"></i>
                     <span>أبحاثي</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/student/student_notifications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/student_notifications.php', '/irb-digital-system/features/student/notification_details.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>الإشعارات</span>
+                    <?php if ($sidebarUnread > 0): ?>
+                        <span style="background:var(--accent-base);color:white;padding:2px 8px;border-radius:999px;font-size:0.75rem;font-weight:800;margin-right:auto;"><?= $sidebarUnread ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
         <?php endif; ?>
