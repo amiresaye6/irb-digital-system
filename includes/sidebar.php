@@ -137,6 +137,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة المدير</span>
             </li>
             <li class="menu-item">
+                <a href="/irb-digital-system/features/manager/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>إحصائيات النظام</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/final_approvals.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-stamp"></i>
                     <span>الاعتمادات النهائية</span>

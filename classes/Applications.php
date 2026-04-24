@@ -166,7 +166,14 @@ class Applications {
         $sql = "INSERT INTO notifications (user_id, application_id, message, channel) VALUES (?, ?, ?, 'system')";
         $stmt = $db->prepare($sql);
         $stmt->bind_param("iis", $user_id, $application_id, $message);
-        return $stmt->execute();
+        $inserted = $stmt->execute();
+        
+        if ($inserted) {
+            require_once __DIR__ . '/EmailService.php';
+            EmailService::triggerCron();
+        }
+        
+        return $inserted;
     }
 
     public static function createLog($db, $application_id, $user_id, $action) {

@@ -129,6 +129,7 @@ CREATE TABLE notifications (
     message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     channel ENUM('system','email','sms'),
     is_read BOOLEAN DEFAULT FALSE,
+    email_sent BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL
@@ -177,6 +178,49 @@ BEGIN
         UPDATE applications 
         SET current_stage = 'approved_by_reviewer' 
         WHERE id = NEW.application_id AND current_stage = 'under_review';
+    END IF;
+    IF NEW.decision != OLD.decision THEN
+        INSERT INTO logs (application_id, user_id, action)
+        VALUES (
+            NEW.application_id, 
+            NEW.reviewer_id, 
+            CONCAT('المراجع سجل قراره: ', 
+                CASE NEW.decision 
+                    WHEN 'approved' THEN 'موافقة'
+                    WHEN 'needs_modification' THEN 'يحتاج تعديلات'
+                    WHEN 'rejected' THEN 'مرفوض'
+                    ELSE NEW.decision 
+                END
+            )
+        );
+    END IF;
+END//
+
+CREATE TRIGGER after_applications_update_log
+AFTER UPDATE ON applications
+FOR EACH ROW
+BEGIN
+    IF NEW.current_stage != OLD.current_stage THEN
+        INSERT INTO logs (application_id, user_id, action) 
+        VALUES (NEW.id, NULL, CONCAT('تحديث حالة البحث إلى: ', NEW.current_stage));
+    END IF;
+END//
+
+CREATE TRIGGER after_documents_insert_log
+AFTER INSERT ON documents
+FOR EACH ROW
+BEGIN
+    INSERT INTO logs (application_id, user_id, action) 
+    VALUES (NEW.application_id, NULL, CONCAT('تم رفع مستند جديد: ', NEW.document_type));
+END//
+
+CREATE TRIGGER after_documents_update_log
+AFTER UPDATE ON documents
+FOR EACH ROW
+BEGIN
+    IF NEW.file_path != OLD.file_path THEN
+        INSERT INTO logs (application_id, user_id, action) 
+        VALUES (NEW.application_id, NULL, CONCAT('تم تحديث مستند: ', NEW.document_type));
     END IF;
 END//
 
@@ -334,12 +378,12 @@ INSERT INTO logs (application_id, user_id, action, created_at) VALUES
 (8, 11, 'اعتماد نهائي وإصدار شهادة IRB', '2026-02-01 10:00:00');
 
 -- 11. Seed Notifications
-INSERT INTO notifications (user_id, application_id, message, channel, is_read, created_at) VALUES 
-(2, 2, 'بحثك (IRB-2026-002) يحتاج إلى تعديلات بناءً على ملاحظات المراجعة الفنية. يرجى مراجعة التعليقات وتحديث المستندات.', 'system', 0, '2026-04-18 09:05:00'),
-(4, 4, 'تم رفض بحثك (IRB-2026-004). يرجى مراجعة أسباب الرفض في تفاصيل البحث.', 'system', 1, '2026-02-28 12:05:00'),
-(1, 1, 'تهانينا! تم اعتماد بحثك (IRB-2026-001) نهائياً وإصدار شهادة IRB.', 'system', 1, '2026-03-15 10:05:00'),
-(13, 8, 'تهانينا! تم اعتماد بحثك (IRB-2026-008) نهائياً وإصدار شهادة IRB.', 'system', 0, '2026-02-01 10:05:00'),
-(1, 5, 'بحثك (IRB-2026-005) بانتظار سداد رسوم التقديم الأولية.', 'system', 0, '2026-04-20 17:00:00');
+INSERT INTO notifications (user_id, application_id, message, channel, is_read, email_sent, created_at) VALUES 
+(2, 2, 'بحثك (IRB-2026-002) يحتاج إلى تعديلات بناءً على ملاحظات المراجعة الفنية. يرجى مراجعة التعليقات وتحديث المستندات.', 'system', 0, 1, '2026-04-18 09:05:00'),
+(4, 4, 'تم رفض بحثك (IRB-2026-004). يرجى مراجعة أسباب الرفض في تفاصيل البحث.', 'system', 1, 1, '2026-02-28 12:05:00'),
+(1, 1, 'تهانينا! تم اعتماد بحثك (IRB-2026-001) نهائياً وإصدار شهادة IRB.', 'system', 1, 1, '2026-03-15 10:05:00'),
+(13, 8, 'تهانينا! تم اعتماد بحثك (IRB-2026-008) نهائياً وإصدار شهادة IRB.', 'system', 0, 1, '2026-02-01 10:05:00'),
+(1, 5, 'بحثك (IRB-2026-005) بانتظار سداد رسوم التقديم الأولية.', 'system', 0, 1, '2026-04-20 17:00:00');
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;

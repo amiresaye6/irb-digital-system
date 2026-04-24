@@ -50,15 +50,6 @@ if ($result['success']) {
 
         // Send notification to student
         Applications::createNotification($db, $app_row['student_id'], $application_id, $msg);
-
-        // Log the reviewer decision
-        $logLabels = [
-            'approved' => 'موافقة على البحث من قبل المراجع',
-            'needs_modification' => 'طلب تعديلات على البحث من قبل المراجع',
-            'rejected' => 'رفض البحث من قبل المراجع',
-        ];
-        $logAction = ($logLabels[$decision] ?? $decision) . " - بواسطة المراجع";
-        Applications::createLog($db, $application_id, $reviewer_id, $logAction);
     }
 
     header("Location: review_form.php?application_id=$application_id&success=1");

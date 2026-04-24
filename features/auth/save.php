@@ -1,6 +1,7 @@
 <?php
 session_start(); 
 require_once "../../init.php";
+require_once "../../classes/EmailService.php";
 
 $full_name= trim($_POST['full_name']    ?? '');
 $email= trim($_POST['email']        ?? '');
@@ -97,6 +98,16 @@ $data = [
 
 if($dbobj->insert("users", $data)) {
     $_SESSION['success'] = "تم التسجيل بنجاح! انتظر تفعيل حسابك من الإدارة.";
+    EmailService::sendAsync($email, $full_name, "طلب تسجيل حساب جديد", "مرحبا {$full_name}, 
+لقد تم تسجيل طلب إنشاء حساب جديد. سيتم مراجعة طلبك من قبل الإدارة وتفعيله قريباً.
+
+تفاصيل الحساب:
+الاسم: {$full_name}
+البريد الإلكتروني: {$email}
+الرقم القومي: {$national_id}
+رقم الهاتف: {$phone_number}
+الكلية: {$faculty}
+القسم: {$department}", "");
     header("Location: login.php");
     exit();
 } else {

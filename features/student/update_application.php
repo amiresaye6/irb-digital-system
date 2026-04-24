@@ -99,15 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_app'])) {
     }
     if ($uploadedCount > 0) $hasChanges = true;
 
-    // Log the changes
-    if ($hasChanges) {
-        $logParts = [];
-        if (!empty($newTitle) && !empty($newPI)) $logParts[] = 'تحديث بيانات البحث (العنوان، الباحث الرئيسي، المشاركون)';
-        if ($uploadedCount > 0) $logParts[] = "تحديث $uploadedCount مستند(ات)";
-        $logAction = implode(' + ', $logParts);
-        Applications::createLog($db, $app_id, $student_id, $logAction);
-    }
-
     if ($hasChanges) {
         header("Location: student_research_details.php?id=$app_id&success=1");
     } else {

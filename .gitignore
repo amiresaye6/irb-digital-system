@@ -1,3 +1,5 @@
 includes/env.php
 myplans
 *.pdf
+/vendor/
+composer.phar
