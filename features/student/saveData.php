@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Success insert files
     $research_dir = __DIR__ . "/../../uploads/researches/";
-    $documents_dir = __DIR__ . "/../../uploads/applications/$last_id/";
+    $documents_dir = __DIR__ . "/../../uploads/documents/";
 
     if (!is_dir($research_dir)) mkdir($research_dir, 0755, true);
     if (!is_dir($documents_dir)) mkdir($documents_dir, 0755, true);
@@ -115,7 +115,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         move_uploaded_file($_FILES[$field_name]["tmp_name"], $destination);
         $docStmt->bind_param("iss", $last_id, $field_name, $destination);
         $docStmt->execute();
-    }
+    };
+
+
+    $logs = [
+        "application_id" => $last_id,
+        "user_id" => $student_id,
+        "action" => "تم تقديم البحث بنجاح ورفع المستندات"
+    ];
+    $database->insert("logs",$logs);
 
     $docStmt->close();
         $_SESSION['form_errors'] = [];
