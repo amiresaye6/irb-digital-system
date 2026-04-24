@@ -208,6 +208,13 @@ $stageLabels = [
         #space{
             height:100px;
         }
+
+        @media (max-width: 1000px){
+            .main-content {
+            margin-right: 0px;
+            }
+        }
+
     </style>
 </head>
 <body>

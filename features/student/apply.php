@@ -150,6 +150,22 @@ $data = $_SESSION['form_data'] ?? [];
         .full-width {
             grid-column: 1 / -1;
         }
+
+        @media (max-width: 1000px) {
+            body {
+                margin-right: 0; /* إلغاء المساحة اللي كانت محجوزة للـ sidebar */
+                padding: 20px;   /* تقليل الحواف عشان الشاشات الصغيرة */
+            }
+
+            .form-card {
+                padding: 20px;   /* تصغير الحواف الداخلية للكارت */
+                margin: 20px auto;
+            }
+
+            .grid-container {
+                grid-template-columns: 1fr; /* جعل الحقول تحت بعضها تماماً */
+            }
+        }
     </style>
 </head>
 
