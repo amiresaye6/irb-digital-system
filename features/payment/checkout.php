@@ -29,11 +29,22 @@ try {
         $paymentResult = $payment->createInitialPayment($applicationData, $userData);
         $phase = 'initial';
         $amount = 500.00;
+
     } elseif ($applicationData['current_stage'] === 'awaiting_sample_payment') {
-        $paymentResult = $payment->createSamplePayment($applicationData, $userData);
+        $sampleData = $db->selectWhere('sample_sizes', 'application_id', $application_id);
+
+        if (!$sampleData) {
+            die("Error: Sample size data not found for this application.");
+        }
+
+        $applicationData['sample_size'] = $sampleData['calculated_size'];
+        $applicationData['sample_amount'] = $sampleData['sample_amount'];
+
+        $amount = $sampleData['sample_amount'];
         $phase = 'sample';
-        $sampleSize = $applicationData['sample_size'];
-        $amount = ($sampleSize <= 100) ? 200 : (($sampleSize <= 500) ? 500 : 1000);
+
+        $paymentResult = $payment->createSamplePayment($applicationData, $userData);
+
     } else {
         die("Error: This application is not pending any payments.");
     }

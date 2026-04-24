@@ -14,7 +14,6 @@ require_once __DIR__ . '/../../includes/pagination.php';
 $db = new Database();
 $student_id = $_SESSION['user_id'];
 
-// Join payments with applications to get the titles and serials
 $sql = "
     SELECT p.*, a.title, a.serial_number 
     FROM payments p
@@ -726,9 +725,6 @@ $history = $db->getconn()->query($sql)->fetch_all(MYSQLI_ASSOC);
             btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             btnElement.style.pointerEvents = 'none';
 
-            // 1. Build the HTML string. 
-            // 🔥 THE TRICK: We wrap the RTL receipt inside a fixed-width LTR container.
-            // This completely destroys the html2canvas RTL offset bug.
             const receiptHTML = `
                 <div style="width: 800px; direction: ltr; background: white; padding: 20px;">
                     <div style="direction: rtl; font-family: 'Cairo', sans-serif; background: #ffffff; padding: 40px; text-align: center; color: #2c3e50; border: 2px solid #ecf0f1; border-radius: 16px; width: 650px; margin: 0 auto;">
@@ -767,15 +763,13 @@ $history = $db->getconn()->query($sql)->fetch_all(MYSQLI_ASSOC);
                 html2canvas: {
                     scale: 2,
                     useCORS: true,
-                    windowWidth: 800, // The size of the "virtual screen"
-                    x: 0,  // <-- CHANGE THIS: Negative moves content Right, Positive moves content Left
-                    y: 600   // <-- CHANGE THIS: Negative moves content Down, Positive moves content Up
+                    windowWidth: 800,
+                    x: 0,
+                    y: 0
                 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // 2. 🔥 THE FIX: Wait for the browser to finish loading the "Cairo" font completely
             document.fonts.ready.then(() => {
-                // 3. Pass the RAW STRING directly! No DOM appending, no tempDiv, no z-index bugs.
                 html2pdf().set(opt).from(receiptHTML).save().then(() => {
                     btnElement.innerHTML = originalIcon;
                     btnElement.style.pointerEvents = 'auto';

@@ -4,8 +4,7 @@ require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . '/../../includes/pagination.php';
 
-// Removed 'student' - Only admins and managers should see the financial overview
-Auth::checkRole(['admin', 'manager', 'student']); 
+Auth::checkRole(['admin', 'manager']);
 
 $db = new Database();
 
@@ -213,7 +212,6 @@ foreach ($allPayments as $pay) {
                                     $uiStatus = 'rejected'; $icon = 'fa-xmark'; $label = 'فشل';
                                 }
                                 
-                                // Construct search blob for JS filtering
                                 $searchBlob = strtolower($row['student_name'] . ' ' . $row['serial_number'] . ' ' . $row['gateway_transaction_id']);
                             ?>
                                 <tr data-search="<?= htmlspecialchars($searchBlob) ?>" data-status="<?= $uiStatus ?>" data-date="<?= htmlspecialchars($dateVal) ?>">
@@ -261,7 +259,7 @@ foreach ($allPayments as $pay) {
                 tableBodyId: 'paymentsTableBody', 
                 noResultsRowId: 'noResultsRow',
                 paginationContainerId: 'paymentsPagination', 
-                pageSize: 15, // Showing a bit more rows for admin view
+                pageSize: 15,
                 defaultSort: 'desc'
             });
         })();

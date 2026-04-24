@@ -6,7 +6,6 @@ $db = new Database();
 $student_id = Auth::user()['id'];
 
 $paymentData = null;
-// SCENARIO 1: Coming from the Payment History page (Internal)
 if (isset($_GET['payment_id'])) {
     $payment_id = (int) $_GET['payment_id'];
     $sql = "
@@ -17,7 +16,6 @@ if (isset($_GET['payment_id'])) {
     ";
     $paymentData = $db->getconn()->query($sql)->fetch_assoc();
 }
-// SCENARIO 2: Coming directly from Paymob Redirection (External)
 elseif (isset($_GET['merchant_order_id'])) {
     $merchantRef = $db->getconn()->real_escape_string($_GET['merchant_order_id']);
     $sql = "
@@ -29,7 +27,6 @@ elseif (isset($_GET['merchant_order_id'])) {
     $paymentData = $db->getconn()->query($sql)->fetch_assoc();
 }
 
-// Security Check: Does this payment exist and belong to the student?
 if (!$paymentData) {
     die("<div style='text-align:center; margin-top:50px; font-family: Cairo, sans-serif; direction: rtl;'>
             <h2 style='color: #e74c3c;'>عذراً، الإيصال غير موجود</h2>
@@ -38,21 +35,15 @@ if (!$paymentData) {
          </div>");
 }
 
-/* * RACE CONDITION FIX:
- * Paymob might redirect the user here before the Webhook updates the database status to 'completed'.
- * So, we consider it a success if the DB says completed OR if Paymob's URL says success=true.
- */
+
 $isSuccessFromDB = ($paymentData['status'] === 'completed');
 $isSuccessFromPaymob = (isset($_GET['success']) && $_GET['success'] === 'true');
 $isSuccess = $isSuccessFromDB || $isSuccessFromPaymob;
 
-// Extract variables for the UI
 $amountEGP = $paymentData['amount'];
 $serialNumber = $paymentData['serial_number'];
 $merchantRef = $paymentData['transaction_reference'];
-// If DB hasn't saved the Paymob Order ID yet, grab it from the URL
 $orderId = $paymentData['gateway_transaction_id'] ?: ($_GET['order'] ?? '—');
-// If DB hasn't saved the paid_at timestamp yet, use the current time
 $paymentDate = $paymentData['paid_at'] ? date('Y-m-d h:i A', strtotime($paymentData['paid_at'])) : date('Y-m-d h:i A');
 
 ?>

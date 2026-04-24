@@ -43,18 +43,18 @@ class Payment
 
     public function createSamplePayment($application, $user)
     {
-        if (empty($application['sample_size'])) {
-            throw new Exception("Sample size is not set for this application.");
+        if (!isset($application['sample_amount'])) {
+            throw new Exception("Sample amount is not set for this application.");
         }
 
-        $variableAmount = $this->calculateSampleFee($application['sample_size']);
+        $variableAmount = $application['sample_amount'];
         $reference = $application['serial_number'] . '-SAMP-' . time();
 
         $items = [
             [
                 "name" => "رسوم مراجعة حجم العينة",
                 "amount" => $variableAmount * 100,
-                "description" => "رسوم متغيرة لعينة بحجم " . $application['sample_size'],
+                "description" => "رسوم مراجعة لعينة بحجم " . ($application['sample_size'] ?? 'محدد مسبقاً'),
                 "quantity" => 1
             ]
         ];
@@ -161,15 +161,6 @@ class Payment
                 'error' => $decodedError ? $decodedError : "Raw Paymob Response: " . $response
             ];
         }
-    }
-
-    private function calculateSampleFee($sampleSize)
-    {
-        if ($sampleSize <= 100)
-            return 200;
-        if ($sampleSize <= 500)
-            return 500;
-        return 1000;
     }
 }
 ?>
