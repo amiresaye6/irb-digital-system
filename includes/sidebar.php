@@ -11,6 +11,10 @@ function irb_sidebar_is_active($paths)
     }
     return false;
 }
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 
 <aside class="sidebar">
@@ -25,7 +29,13 @@ function irb_sidebar_is_active($paths)
     <ul class="sidebar-menu">
         <!-- Universal Links -->
         <li class="menu-item">
-            <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+                <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):?>
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php else:?>
+                <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php endif; ?>
                 <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
             </a>
@@ -33,19 +43,33 @@ function irb_sidebar_is_active($paths)
 
         <!-- Student Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+            <?php
+                require_once __DIR__ . '/../classes/Applications.php';
+                $sidebarAppObj = new Applications();
+                $sidebarUnread = $sidebarAppObj->getUnreadNotificationCount($_SESSION['user_id']);
+            ?>
             <li class="menu-category">
                 <span class="category-label">منطقة الطالب</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/student/apply.php" class="menu-link <?= irb_sidebar_is_active(['/irb-digital-system/features/student/apply.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/apply.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/apply.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-file-circle-plus"></i>
                     <span>تقديم بحث جديد</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/my_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/my_applications.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/student_researches.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/student_researches.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-folder-open"></i>
                     <span>أبحاثي</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/student/student_notifications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/student_notifications.php', '/irb-digital-system/features/student/notification_details.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>الإشعارات</span>
+                    <?php if ($sidebarUnread > 0): ?>
+                        <span style="background:var(--accent-base);color:white;padding:2px 8px;border-radius:999px;font-size:0.75rem;font-weight:800;margin-right:auto;"><?= $sidebarUnread ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
         <?php endif; ?>
@@ -100,7 +124,7 @@ function irb_sidebar_is_active($paths)
                 <span class="category-label">منطقة المراجع</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/assigned_reviews.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/assigned_reviews.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/reviewer/assigned_reserches.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/assigned_reserches.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-microscope"></i>
                     <span>الأبحاث المسندة</span>
                 </a>
@@ -137,9 +161,13 @@ function irb_sidebar_is_active($paths)
     <div class="sidebar-footer">
         <div class="user-info">
             <i class="fa-solid fa-user-circle"></i>
-            <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(substr($_SESSION['full_name'], 0, 20)) : 'المستخدم' ?></span>
+            <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+                <a href="/irb-digital-system/features/student/profile.php" class="user-name" style="text-decoration: none;"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8')) : 'المستخدم' ?></a>
+            <?php else:?>
+                <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8'))  : 'المستخدم' ?></span>
+            <?php endif; ?>
         </div>
-        <a href="/irb-digital-system/logout.php" class="logout-btn">
+        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn">
             <i class="fa-solid fa-right-from-bracket"></i>
         </a>
     </div>

@@ -10,9 +10,11 @@ USE irb_system;
 DROP TABLE IF EXISTS logs;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS certificates;
+DROP TABLE IF EXISTS review_comments;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS documents;
+DROP TABLE IF EXISTS sample_sizes;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS users;
 
@@ -40,25 +42,37 @@ CREATE TABLE applications (
     title TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     principal_investigator VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     co_investigators JSON,
-    sample_size INT NULL,
     current_stage ENUM(
         'pending_admin', 'awaiting_initial_payment', 'awaiting_sample_calc',
-        'awaiting_sample_payment', 'under_review', 'approved', 'rejected'
+        'awaiting_sample_payment', 'under_review','approved_by_reviewer','approved', 'rejected'
     ) DEFAULT 'pending_admin',
     is_blinded BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX(student_id),
     INDEX(current_stage)
+);
+
+CREATE TABLE sample_sizes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT,
+    sampler_id INT,
+    calculated_size INT,
+    sample_amount DECIMAL(10,2),
+    notes TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+    FOREIGN KEY (sampler_id) REFERENCES users(id)
 );
 
 CREATE TABLE documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT,
     document_type ENUM(
-        'protocol', 'conflict_of_interest', 'irb_checklist',
-        'pi_consent', 'patient_consent', 'photos_biopsies_consent'
-    ),
+        'research','protocol', 'conflict_of_interest', 'irb_checklist',
+        'pi_consent', 'patient_consent', 'photos_biopsies_consent' ,'protocol_review_app'
+    ) NOT NULL, 
     file_path VARCHAR(255),
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
@@ -68,7 +82,7 @@ CREATE TABLE payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT,
     phase ENUM('initial','sample'),
-    amount DECIMAL(10,2),
+    amount DECIMAL(10,2) ,
     provider VARCHAR(50),
     transaction_reference VARCHAR(100),
     gateway_transaction_id VARCHAR(100) NULL,
@@ -84,11 +98,18 @@ CREATE TABLE reviews (
     reviewer_id INT,
     assigned_by INT,
     decision ENUM('pending','approved','needs_modification','rejected') DEFAULT 'pending',
-    comments TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     reviewed_at TIMESTAMP NULL,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewer_id) REFERENCES users(id),
     FOREIGN KEY (assigned_by) REFERENCES users(id)
+);
+
+CREATE TABLE review_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,
+    comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE
 );
 
 CREATE TABLE certificates (
@@ -106,11 +127,13 @@ CREATE TABLE certificates (
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
+    application_id INT NULL,
     message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     channel ENUM('system','email','sms'),
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL
 );
 
 CREATE TABLE logs (
@@ -122,6 +145,44 @@ CREATE TABLE logs (
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Triggers for Payments
+DELIMITER //
+
+-- CREATE TRIGGER before_payments_insert
+-- BEFORE INSERT ON payments
+-- FOR EACH ROW
+-- BEGIN
+--     IF NEW.phase = 'initial' THEN
+--         SET NEW.amount = 500.00;
+--     ELSEIF NEW.phase = 'sample' THEN
+--         SET NEW.amount = (SELECT sample_amount FROM sample_sizes WHERE application_id = NEW.application_id LIMIT 1);
+--     END IF;
+-- END//
+
+-- CREATE TRIGGER before_payments_update
+-- BEFORE UPDATE ON payments
+-- FOR EACH ROW
+-- BEGIN
+--     IF NEW.phase = 'initial' THEN
+--         SET NEW.amount = 500.00;
+--     ELSEIF NEW.phase = 'sample' THEN
+--         SET NEW.amount = (SELECT sample_amount FROM sample_sizes WHERE application_id = NEW.application_id LIMIT 1);
+--     END IF;
+-- END//
+
+CREATE TRIGGER after_reviews_update
+AFTER UPDATE ON reviews
+FOR EACH ROW
+BEGIN
+    IF NEW.decision = 'approved' AND OLD.decision != 'approved' THEN
+        UPDATE applications 
+        SET current_stage = 'approved_by_reviewer' 
+        WHERE id = NEW.application_id AND current_stage = 'under_review';
+    END IF;
+END//
+
+DELIMITER ;
 
 -- 3. Seed Users (Password for all is: password)
 -- The hash below is standard PHP bcrypt for 'password'
@@ -136,18 +197,45 @@ INSERT INTO users (role, full_name, email, password_hash, national_id, phone_num
 ('reviewer', 'أ.د. خالد عبد السلام', 'khaled.rev@irb.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '26001011234008', '01512345678', 'كلية الطب', 'الباطنة', NULL, NULL, 1),
 ('reviewer', 'أ.د. هدى الشربيني', 'hoda.rev@irb.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '26001011234009', '01512345679', 'كلية الطب', 'الأورام', NULL, NULL, 1),
 ('reviewer', 'أ.د. عصام النجار', 'essam.rev@irb.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '26001011234010', '01512345680', 'كلية الطب', 'الصحة العامة', NULL, NULL, 1),
-('manager', 'أ.د. طارق الحديدي (مدير IRB)', 'manager@irb.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '25001011234011', '01099999999', 'كلية الطب', 'إدارة الجودة والبحث', NULL, NULL, 1);
+('manager', 'أ.د. طارق الحديدي (مدير IRB)', 'manager@irb.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '25001011234011', '01099999999', 'كلية الطب', 'إدارة الجودة والبحث', NULL, NULL, 1),
+('student', 'د. يوسف الشناوي', 'youssef@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234012', '01055555555', 'كلية الطب', 'جراحة العظام', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
+('student', 'د. سلمى رضا', 'salma@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234013', '01066666666', 'كلية الأسنان', 'طب الفم والأسنان', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
+('student', 'د. ماجد توفيق', 'maged@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234014', '01077777777', 'كلية التمريض', 'تمريض باطني وجراحي', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
+('student', 'د. سارة كمال', 'sara@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234015', '01088888888', 'كلية الطب', 'الرمد', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
+('student', 'د. أحمد مصطفى', 'ahmed@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234016', '01099999990', 'كلية الطب', 'الباطنة', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1);
 
 -- 4. Seed Applications
-INSERT INTO applications (student_id, serial_number, title, principal_investigator, co_investigators, sample_size, current_stage, is_blinded, created_at) VALUES 
-(1, 'IRB-2026-001', 'تأثير الأدوية الحديثة على مرضى السكري من النوع الثاني المتقدم', 'د. عمر الفاروق', '["د. أحمد مصطفى", "د. سارة كمال"]', 150, 'approved', 1, '2026-03-01 10:00:00'),
-(2, 'IRB-2026-002', 'معدلات انتشار السمنة المفرطة بين طلاب المدارس الابتدائية في الدلتا', 'د. ليلى عثمان', '["د. يوسف الشناوي"]', 500, 'under_review', 1, '2026-04-10 11:30:00'),
-(3, 'IRB-2026-003', 'مقارنة بين تقنيات التخدير الموضعي والكلي في جراحات الفتق بالمنظار', 'د. كريم محسن', '[]', NULL, 'awaiting_sample_calc', 1, '2026-04-15 09:15:00'),
-(4, 'IRB-2026-004', 'تقييم فعالية المضادات الحيوية واسعة المجال في التهابات الجهاز التنفسي', 'د. نهى عبد الرحمن', '["د. منى زكي", "د. رامي إمام", "د. حسن يوسف"]', 300, 'rejected', 1, '2026-02-20 14:00:00'),
-(1, 'IRB-2026-005', 'استخدام الذكاء الاصطناعي في التشخيص المبكر لاعتلال الشبكية السكري', 'د. عمر الفاروق', '["د. أحمد مصطفى", "د. سارة كمال"]', NULL, 'awaiting_initial_payment', 1, '2026-04-20 16:45:00'),
-(2, 'IRB-2026-006', 'مدى استجابة الأطفال الخدج لبروتوكولات التغذية الوريدية الحديثة', 'د. ليلى عثمان', '[]', 80, 'pending_admin', 1, '2026-04-21 08:00:00');
+INSERT INTO applications (student_id, serial_number, title, principal_investigator, co_investigators, current_stage, is_blinded, created_at) VALUES 
+(1, 'IRB-2026-001', 'تأثير الأدوية الحديثة على مرضى السكري من النوع الثاني المتقدم', 'د. عمر الفاروق', '["د. أحمد مصطفى", "د. سارة كمال"]', 'approved', 1, '2026-03-01 10:00:00'),
+(2, 'IRB-2026-002', 'معدلات انتشار السمنة المفرطة بين طلاب المدارس الابتدائية في الدلتا', 'د. ليلى عثمان', '["د. يوسف الشناوي"]', 'under_review', 1, '2026-04-10 11:30:00'),
+(3, 'IRB-2026-003', 'مقارنة بين تقنيات التخدير الموضعي والكلي في جراحات الفتق بالمنظار', 'د. كريم محسن', '[]', 'awaiting_sample_calc', 1, '2026-04-15 09:15:00'),
+(4, 'IRB-2026-004', 'تقييم فعالية المضادات الحيوية واسعة المجال في التهابات الجهاز التنفسي', 'د. نهى عبد الرحمن', '["د. منى زكي", "د. رامي إمام", "د. حسن يوسف"]', 'rejected', 1, '2026-02-20 14:00:00'),
+(1, 'IRB-2026-005', 'استخدام الذكاء الاصطناعي في التشخيص المبكر لاعتلال الشبكية السكري', 'د. عمر الفاروق', '["د. أحمد مصطفى", "د. سارة كمال"]', 'awaiting_initial_payment', 1, '2026-04-20 16:45:00'),
+(2, 'IRB-2026-006', 'مدى استجابة الأطفال الخدج لبروتوكولات التغذية الوريدية الحديثة', 'د. ليلى عثمان', '[]', 'pending_admin', 1, '2026-04-21 08:00:00'),
+(12, 'IRB-2026-007', 'أثر العلاج الطبيعي المكثف بعد جراحات استبدال مفصل الركبة', 'د. يوسف الشناوي', '[]', 'awaiting_sample_payment', 1, '2026-04-22 09:00:00'),
+(13, 'IRB-2026-008', 'مدى انتشار تسوس الأسنان لدى الأطفال في المناطق الريفية', 'د. سلمى رضا', '["د. هالة صدقي"]', 'approved', 1, '2026-01-15 10:30:00'),
+(14, 'IRB-2026-009', 'تأثير برامج التثقيف الصحي على جودة الحياة لمرضى الفشل الكلوي', 'د. ماجد توفيق', '[]', 'under_review', 1, '2026-04-18 11:15:00'),
+(15, 'IRB-2026-010', 'مضاعفات جراحات المياه البيضاء وعلاقتها بالأمراض المزمنة', 'د. سارة كمال', '["د. عمر الفاروق"]', 'awaiting_sample_calc', 1, '2026-04-23 08:30:00'),
+(16, 'IRB-2026-011', 'فاعلية البروتوكولات المستحدثة في علاج جرثومة المعدة', 'د. أحمد مصطفى', '[]', 'pending_admin', 1, '2026-04-23 12:00:00'),
+(14, 'IRB-2026-012', 'تأثير الإدارة الذاتية لمرضى الربو على تقليل نوبات الاختناق', 'د. ماجد توفيق', '[]', 'approved_by_reviewer', 1, '2026-04-20 11:00:00'),
+(15, 'IRB-2026-013', 'مضاعفات ارتفاع ضغط الدم وتأثيره على شبكية العين', 'د. سارة كمال', '["د. ليلى عثمان"]', 'approved_by_reviewer', 1, '2026-04-21 12:00:00'),
+(1, 'IRB-2026-014', 'مقارنة تأثير التدخل الجراحي المبكر والتأخير في حالات الكسور المضاعفة', 'د. عمر الفاروق', '[]', 'under_review', 1, '2026-04-22 09:00:00'),
+(2, 'IRB-2026-015', 'تأثير السهر الطويل على كفاءة الأداء الدراسي لدى المراهقين', 'د. ليلى عثمان', '[]', 'approved', 1, '2026-04-23 10:00:00');
 
--- 5. Seed Documents
+-- 5. Seed Sample Sizes
+INSERT INTO sample_sizes (application_id, sampler_id, calculated_size, sample_amount, notes, created_at) VALUES 
+(1, 6, 150, 350.00, 'تم حساب العينة بناء على معدل الانتشار السنوي لمرض السكري وتم إضافة 10% لتجنب التسرب', '2026-03-03 09:00:00'),
+(2, 7, 500, 800.00, 'حجم العينة ممثل لمدارس المرحلة الابتدائية بعدة محافظات في الدلتا', '2026-04-12 10:15:00'),
+(4, 6, 300, 400.00, 'الحد الأدنى المطلوب لتحقيق دلالة إحصائية في هذه المقارنة', '2026-02-23 11:30:00'),
+(7, 6, 60, 300.00, 'حجم العينة كافٍ للدراسة المقطعية مع مراعاة الندرة النسبية', '2026-04-22 14:00:00'),
+(8, 7, 1000, 1200.00, 'حجم العينة كبير نسبياً لتغطية الاختلافات الجغرافية في ريف المحافظة', '2026-01-20 09:45:00'),
+(9, 6, 120, 400.00, 'تم الحساب بناء على قوة إحصائية 80% ومستوى ثقة 95%', '2026-04-19 13:20:00'),
+(12, 6, 200, 400.00, 'عينة ممثلة للطلاب', '2026-04-21 09:00:00'),
+(13, 7, 150, 300.00, 'تم احتساب الحجم المطلوب', '2026-04-22 09:00:00'),
+(14, 6, 180, 350.00, 'حجم مناسب', '2026-04-23 09:00:00'),
+(15, 7, 300, 500.00, 'تمت الموافقة على الحجم', '2026-04-23 10:00:00');
+
+-- 6. Seed Documents
 INSERT INTO documents (application_id, document_type, file_path) VALUES 
 (1, 'protocol', 'uploads/seed/dummy_protocol.pdf'), 
 (1, 'conflict_of_interest', 'uploads/seed/dummy_conflict.pdf'),
@@ -160,7 +248,16 @@ INSERT INTO documents (application_id, document_type, file_path) VALUES
 (3, 'protocol', 'uploads/seed/dummy_protocol.pdf'), 
 (4, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
 (5, 'protocol', 'uploads/seed/dummy_protocol.pdf'), 
-(6, 'protocol', 'uploads/seed/dummy_protocol.pdf');
+(6, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(7, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(8, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(9, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(10, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(11, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(12, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(13, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(14, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
+(15, 'protocol', 'uploads/seed/dummy_protocol.pdf');
 
 -- 6. Seed Payments
 INSERT INTO payments (application_id, phase, amount, provider, transaction_reference, gateway_transaction_id, status, gateway_response, paid_at, created_at) VALUES 
@@ -173,25 +270,63 @@ INSERT INTO payments (application_id, phase, amount, provider, transaction_refer
 (4, 'sample', 400.00, 'Fawry', 'FW4002', '511625007', 'completed', '{"message": "Approved"}', '2026-02-25 10:00:00', '2026-02-25 09:50:00'),
 (5, 'initial', 500.00, 'Paymob', 'PM5001', '511676577', 'pending', NULL, NULL, '2026-04-23 19:43:43');
 
--- 7. Seed Reviews
-INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision, comments, reviewed_at) VALUES 
-(1, 8, 5, 'approved', 'منهجية البحث ممتازة، ولا يوجد مانع أخلاقي من التطبيق.', '2026-03-10 10:00:00'),
-(1, 9, 5, 'approved', 'موافق. أهداف الدراسة واضحة وإقرار المرضى مستوفي الشروط.', '2026-03-11 14:00:00'),
-(2, 10, 5, 'needs_modification', 'يجب توضيح كيفية حماية بيانات الأطفال المشاركين في الدراسة بدقة أكبر في نموذج الموافقة المستنيرة.', '2026-04-18 09:00:00'),
-(2, 8, 5, 'pending', NULL, NULL),
-(4, 9, 5, 'rejected', 'يوجد تضارب مصالح واضح مع الشركة المصنعة للمضاد الحيوي لم يتم الإفصاح عنه بشكل كافٍ في النماذج.', '2026-02-28 12:00:00');
+-- 8. Seed Reviews
+INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision, reviewed_at) VALUES 
+(1, 8, 5, 'approved', '2026-03-10 10:00:00'),
+(1, 9, 5, 'approved', '2026-03-11 14:00:00'),
+(2, 10, 5, 'needs_modification', '2026-04-18 09:00:00'),
+(2, 8, 5, 'pending', NULL),
+(4, 9, 5, 'rejected', '2026-02-28 12:00:00'),
+(8, 8, 5, 'approved', '2026-01-25 10:00:00'),
+(8, 10, 5, 'approved', '2026-01-26 12:00:00'),
+(9, 9, 5, 'pending', NULL),
+(9, 10, 5, 'pending', NULL),
+(12, 8, 5, 'approved', '2026-04-23 09:00:00'),
+(12, 9, 5, 'pending', NULL),
+(13, 9, 5, 'approved', '2026-04-23 10:00:00'),
+(13, 10, 5, 'pending', NULL),
+(14, 8, 5, 'pending', NULL),
+(14, 10, 5, 'pending', NULL),
+(15, 8, 5, 'approved', '2026-04-24 09:00:00'),
+(15, 10, 5, 'approved', '2026-04-24 09:30:00');
 
--- 8. Seed Certificates
+-- 8b. Seed Review Comments (review_id maps to review insertion order above)
+INSERT INTO review_comments (review_id, comment, created_at) VALUES 
+(1, 'منهجية البحث ممتازة، ولا يوجد مانع أخلاقي من التطبيق.', '2026-03-10 10:00:00'),
+(2, 'موافق. أهداف الدراسة واضحة وإقرار المرضى مستوفي الشروط.', '2026-03-11 14:00:00'),
+(3, 'يجب توضيح كيفية حماية بيانات الأطفال المشاركين في الدراسة بدقة أكبر في نموذج الموافقة المستنيرة.', '2026-04-18 09:00:00'),
+(3, 'أيضاً يُرجى مراجعة صياغة نموذج الموافقة المستنيرة ليكون أكثر وضوحاً لأولياء الأمور.', '2026-04-18 10:30:00'),
+(5, 'يوجد تضارب مصالح واضح مع الشركة المصنعة للمضاد الحيوي لم يتم الإفصاح عنه بشكل كافٍ في النماذج.', '2026-02-28 12:00:00'),
+(6, 'البروتوكول ممتاز ولا توجد أي ملاحظات أخلاقية.', '2026-01-25 10:00:00'),
+(7, 'استمارات الموافقة المستنيرة مكتوبة بلغة بسيطة ومناسبة.', '2026-01-26 12:00:00'),
+(10, 'مراجعة أولية مقبولة. البروتوكول واضح والمنهجية سليمة.', '2026-04-23 09:00:00'),
+(12, 'لا يوجد موانع أخلاقية. العينة مناسبة.', '2026-04-23 10:00:00'),
+(16, 'موافق. البحث مستوفٍ لجميع الشروط.', '2026-04-24 09:00:00'),
+(17, 'موافق. لا توجد ملاحظات.', '2026-04-24 09:30:00');
+
+-- 9. Seed Certificates
 INSERT INTO certificates (application_id, manager_id, certificate_number, issued_to_name, pdf_url, issued_at) VALUES 
-(1, 11, 'CERT-2026-10045', 'د. عمر الفاروق', 'uploads/seed/dummy_certificate.pdf', '2026-03-15 10:00:00');
+(1, 11, 'CERT-2026-10045', 'د. عمر الفاروق', 'uploads/seed/dummy_certificate.pdf', '2026-03-15 10:00:00'),
+(8, 11, 'CERT-2026-10046', 'د. سلمى رضا', 'uploads/seed/dummy_certificate.pdf', '2026-02-01 10:00:00');
 
--- 9. Seed Logs
+-- 10. Seed Logs
 INSERT INTO logs (application_id, user_id, action, created_at) VALUES 
 (1, 1, 'تم تقديم البحث بنجاح ورفع المستندات', '2026-03-01 10:00:00'),
 (1, 5, 'مراجعة أولية وتوليد رقم تسلسلي للملف', '2026-03-01 12:00:00'),
 (1, 6, 'تم حساب حجم العينة (150)', '2026-03-03 09:00:00'),
 (1, 11, 'اعتماد نهائي وإصدار شهادة IRB', '2026-03-15 10:00:00'),
-(4, 5, 'تحديث حالة البحث إلى مرفوض بناءً على تقرير المراجعة', '2026-02-28 13:00:00');
+(4, 5, 'تحديث حالة البحث إلى مرفوض بناءً على تقرير المراجعة', '2026-02-28 13:00:00'),
+(8, 13, 'تم تقديم البحث بنجاح', '2026-01-15 10:30:00'),
+(8, 7, 'تم حساب حجم العينة (1000)', '2026-01-20 09:45:00'),
+(8, 11, 'اعتماد نهائي وإصدار شهادة IRB', '2026-02-01 10:00:00');
+
+-- 11. Seed Notifications
+INSERT INTO notifications (user_id, application_id, message, channel, is_read, created_at) VALUES 
+(2, 2, 'بحثك (IRB-2026-002) يحتاج إلى تعديلات بناءً على ملاحظات المراجعة الفنية. يرجى مراجعة التعليقات وتحديث المستندات.', 'system', 0, '2026-04-18 09:05:00'),
+(4, 4, 'تم رفض بحثك (IRB-2026-004). يرجى مراجعة أسباب الرفض في تفاصيل البحث.', 'system', 1, '2026-02-28 12:05:00'),
+(1, 1, 'تهانينا! تم اعتماد بحثك (IRB-2026-001) نهائياً وإصدار شهادة IRB.', 'system', 1, '2026-03-15 10:05:00'),
+(13, 8, 'تهانينا! تم اعتماد بحثك (IRB-2026-008) نهائياً وإصدار شهادة IRB.', 'system', 0, '2026-02-01 10:05:00'),
+(1, 5, 'بحثك (IRB-2026-005) بانتظار سداد رسوم التقديم الأولية.', 'system', 0, '2026-04-20 17:00:00');
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,8 +1,9 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    die("Access denied. Admin only.");
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'reviewer') {
+    header("Location: /irb-digital-system/login.php");
+    exit;
 }
 
 require_once __DIR__ . '/../../classes/Reviews.php';
