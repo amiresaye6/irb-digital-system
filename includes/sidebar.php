@@ -100,7 +100,7 @@ function irb_sidebar_is_active($paths)
                 <span class="category-label">منطقة المراجع</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/assigned_reviews.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/assigned_reviews.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/reviewer/assigned_reserches.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/assigned_reserches.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-microscope"></i>
                     <span>الأبحاث المسندة</span>
                 </a>
@@ -139,7 +139,7 @@ function irb_sidebar_is_active($paths)
             <i class="fa-solid fa-user-circle"></i>
             <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(substr($_SESSION['full_name'], 0, 20)) : 'المستخدم' ?></span>
         </div>
-        <a href="/irb-digital-system/logout.php" class="logout-btn">
+        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn">
             <i class="fa-solid fa-right-from-bracket"></i>
         </a>
     </div>
