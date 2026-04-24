@@ -1,253 +1,364 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
+    header("Location: /irb-digital-system/features/auth/login.php");
+    exit;
+}
+
 require_once __DIR__ . '/../../init.php';
-Auth::checkRole(['student']);
 
 $db = new Database();
-$currentUser = Auth::user();
-$student_id = $currentUser['id'];
+$student_id = $_SESSION['user_id'];
 
-// Get applications waiting for either payment phase
-$sql = "SELECT id, serial_number, title, current_stage, sample_size 
-        FROM applications 
-        WHERE student_id = $student_id 
-        AND current_stage IN ('awaiting_initial_payment', 'awaiting_sample_payment')";
+// Use a LEFT JOIN to grab the sample size and exact fee IF it exists
+$sql = "
+    SELECT 
+        a.id, 
+        a.serial_number, 
+        a.title, 
+        a.current_stage, 
+        s.calculated_size,
+        s.sample_amount
+    FROM applications a
+    LEFT JOIN sample_sizes s ON a.id = s.application_id
+    WHERE a.student_id = $student_id 
+    AND a.current_stage IN ('awaiting_initial_payment', 'awaiting_sample_payment')
+";
 
 $pendingApplications = $db->getconn()->query($sql)->fetch_all(MYSQLI_ASSOC);
-
-// Helper function to calculate sample fee matching your Payment class
-function getSampleFee($size)
-{
-    if (!$size)
-        return 0;
-    if ($size <= 100)
-        return 200;
-    if ($size <= 500)
-        return 500;
-    return 1000;
-}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
-    <title>المدفوعات المستحقة (Pending Payments)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المدفوعات المستحقة | IRB System</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="/irb-digital-system/includes/style.css">
+    <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css">
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--bg-page);
-            padding: 40px;
-            color: var(--text-main);
+            background: var(--bg-page);
+        }
+
+        .content {
+            margin-right: 260px;
+            min-height: 100vh;
+            padding: 20px 24px;
+            background: var(--bg-page);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .content>* {
+            width: 100%;
+            max-width: 1120px;
         }
 
         .page-header {
-            text-align: center;
-            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .page-title {
             color: var(--primary-base);
-            border-bottom: 4px solid var(--accent-base);
-            padding-bottom: 10px;
-            display: inline-block;
-            margin: 0;
+            margin-bottom: 8px;
             font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.6rem;
+            margin-top: 0;
         }
 
-        .cards-grid {
+        .page-title i {
+            color: var(--accent-base);
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .btn-history {
+            background: var(--bg-surface);
+            color: var(--primary-base);
+            border: 2px solid var(--border-light);
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all var(--transition-smooth);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-history:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-base);
+            transform: translateY(-2px);
+        }
+
+        .invoice-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            margin: 0 auto;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+            margin-top: 10px;
         }
 
-        .card {
+        .invoice-card {
             background: var(--bg-surface);
             border-radius: var(--radius-lg);
             padding: 25px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid rgba(44, 62, 80, 0.05);
-            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
             display: flex;
             flex-direction: column;
+            transition: all var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
+        .invoice-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-base);
+            opacity: 0;
+            transition: opacity var(--transition-smooth);
         }
 
-        .card-header {
+        .invoice-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-base);
+        }
+
+        .invoice-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header-flex {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            /* Aligns items to top */
             gap: 15px;
-            /* Adds breathing room between title and badge */
             margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 15px;
         }
 
-        .card h3 {
+        .card-title-text {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--primary-base);
             margin: 0;
-            font-size: 1.15rem;
             line-height: 1.5;
-            color: var(--primary-dark);
-            font-weight: 700;
             flex: 1;
-            /* Allows title to take remaining space */
         }
 
-        /* The fix for the squished serial number */
-        .serial {
+        .badge-serial {
             font-family: monospace, 'Cairo';
-            /* Monospace looks great for IDs */
+            background: var(--primary-light);
+            color: var(--primary-base);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
             font-size: 0.85rem;
             font-weight: 800;
-            color: var(--accent-dark);
-            background: var(--accent-light);
-            padding: 6px 14px;
-            border-radius: 30px;
-            /* Pill shape */
             white-space: nowrap;
-            /* CRITICAL: Prevents it from breaking into multiple lines */
-            flex-shrink: 0;
-            /* CRITICAL: Prevents the title from squishing it */
-            letter-spacing: 0.5px;
+            border: 1px solid rgba(44, 62, 80, 0.1);
         }
 
-        .payment-details {
-            background: #f8fafc;
-            /* Softer, cooler gray */
-            padding: 20px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
-            margin-bottom: 25px;
-            flex-grow: 1;
-            /* Pushes button to bottom if titles vary in length */
-        }
-
-        .detail-row {
+        .data-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
-            font-size: 0.95rem;
+        }
+
+        .data-row .label {
+            font-size: 0.85rem;
             color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .detail-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .detail-row span:last-child {
-            color: var(--text-main);
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .amount-row {
+        .data-row .value {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .amount-box {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px dashed var(--border-dark);
+            border-top: 2px dashed var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .amount-row .amount {
+        .amount-box .label {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary-base);
+        }
+
+        .amount-display {
+            font-size: 1.6rem;
             color: var(--accent-dark);
-            font-size: 1.5rem;
             font-weight: 800;
         }
 
         .btn-pay {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
             background: var(--primary-base);
             color: white;
-            padding: 14px;
             border: none;
+            padding: 14px;
             border-radius: var(--radius-md);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1rem;
+            font-weight: 800;
             transition: all var(--transition-smooth);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            margin-top: 25px;
+            width: 100%;
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-pay:hover {
             background: var(--primary-dark);
-            box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
+        .empty-state-card {
+            background: var(--bg-surface);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            text-align: center;
+            padding: 60px 20px;
             color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
+            margin-top: 20px;
+        }
+
+        .empty-state-card i {
+            font-size: 4rem;
+            color: var(--success-base);
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .empty-state-card h3 {
+            color: var(--primary-base);
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        @media(max-width:992px) {
+            .content {
+                margin-right: 0;
+                padding: 24px 14px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="page-header">
-        <h1 class="page-title">المدفوعات المستحقة</h1>
-    </div>
+    <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
 
-    <?php if (empty($pendingApplications)): ?>
-        <div class="empty-state">
-            <i class="fa-solid fa-check-circle"
-                style="font-size: 4rem; color: var(--success-base); margin-bottom: 20px;"></i>
-            <h3 style="color: var(--text-main); margin-bottom: 10px;">لا توجد مدفوعات مستحقة حالياً</h3>
-            <p>جميع أبحاثك في المراحل التالية أو لم تتطلب دفعاً بعد.</p>
+    <div class="content">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title"><i class="fa-solid fa-file-invoice"></i> المدفوعات المستحقة</h2>
+                <p class="page-subtitle">إدارة الفواتير ورسوم تقديم الأبحاث المطلوبة لاستكمال المراجعة</p>
+            </div>
+            <a href="payment_history.php" class="btn-history">
+                <i class="fa-solid fa-clock-rotate-left"></i> سجل المدفوعات السابقة
+            </a>
         </div>
-    <?php else: ?>
-        <div class="cards-grid">
-            <?php foreach ($pendingApplications as $app):
-                $isInitial = $app['current_stage'] === 'awaiting_initial_payment';
-                $paymentType = $isInitial ? 'رسوم التقديم المبدئية' : 'رسوم مراجعة حجم العينة';
-                $amount = $isInitial ? 500.00 : getSampleFee($app['sample_size']);
-                ?>
-                <div class="card">
-                    <div class="card-header">
-                        <h3><?= htmlspecialchars($app['title']) ?></h3>
-                        <span class="serial"><?= htmlspecialchars($app['serial_number']) ?></span>
-                    </div>
 
-                    <div class="payment-details">
-                        <div class="detail-row">
-                            <span>نوع الرسوم:</span>
-                            <span><?= $paymentType ?></span>
+        <?php if (empty($pendingApplications)): ?>
+            <div class="empty-state-card">
+                <i class="fa-solid fa-circle-check"></i>
+                <h3>لا توجد فواتير مستحقة الدفع</h3>
+                <p style="font-size: 1.05rem; font-weight: 600;">جميع أبحاثك في المراحل التالية أو لم تتطلب دفعاً بعد.</p>
+            </div>
+        <?php else: ?>
+            <div class="invoice-grid">
+                <?php foreach ($pendingApplications as $app):
+                    $isInitial = $app['current_stage'] === 'awaiting_initial_payment';
+
+                    // Setup specific UI text based on the phase
+                    if ($isInitial) {
+                        $paymentType = 'رسوم التقديم المبدئية';
+                        $icon = 'fa-file-signature';
+                        $amount = 500.00;
+                    } else {
+                        $paymentType = 'رسوم مراجعة حجم العينة';
+                        $icon = 'fa-users-viewfinder';
+                        $amount = $app['sample_amount'] ?? 0;
+                    }
+                    ?>
+                    <div class="invoice-card">
+                        <div class="card-header-flex">
+                            <h3 class="card-title-text"><?= htmlspecialchars($app['title']) ?></h3>
+                            <span class="badge-serial"><?= htmlspecialchars($app['serial_number']) ?></span>
                         </div>
 
-                        <?php if (!$isInitial && $app['sample_size']): ?>
-                            <div class="detail-row">
-                                <span>حجم العينة المُسجل:</span>
-                                <span><?= $app['sample_size'] ?> مشارك</span>
+                        <div style="flex-grow: 1;">
+                            <div class="data-row">
+                                <span class="label"><i class="fa-solid <?= $icon ?>"></i> نوع الرسوم</span>
+                                <span class="value"><?= $paymentType ?></span>
                             </div>
-                        <?php endif; ?>
 
-                        <div class="detail-row amount-row">
-                            <span>المبلغ المطلوب:</span>
-                            <span class="amount"><?= number_format($amount, 2) ?> ج.م</span>
+                            <?php if (!$isInitial && $app['calculated_size']): ?>
+                                <div class="data-row">
+                                    <span class="label"><i class="fa-solid fa-chart-pie"></i> حجم العينة المُسجل</span>
+                                    <span class="value"><?= $app['calculated_size'] ?> مشارك</span>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="amount-box">
+                                <span class="label">المبلغ المطلوب:</span>
+                                <span class="amount-display"><?= number_format($amount, 2) ?> ج.م</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <a href="../payment/checkout.php?app_id=<?= $app['id'] ?>" class="btn-pay">
-                        <i class="fa-regular fa-credit-card"></i>
-                        دفع الآن عبر Paymob
-                    </a>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+                        <a href="../payment/checkout.php?app_id=<?= $app['id'] ?>" class="btn-pay">
+                            <i class="fa-regular fa-credit-card"></i> دفع عبر Paymob
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 </body>
 
 </html>
