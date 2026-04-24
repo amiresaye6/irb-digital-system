@@ -30,9 +30,9 @@ if (session_status() === PHP_SESSION_NONE) {
         <!-- Universal Links -->
         <li class="menu-item">
             <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
-                <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/dashboard.php']) ? ' is-active' : '' ?>">
             <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):?>
-                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
             <?php else:?>
                 <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
             <?php endif; ?>
