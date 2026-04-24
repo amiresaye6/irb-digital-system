@@ -29,7 +29,13 @@ if (session_status() === PHP_SESSION_NONE) {
     <ul class="sidebar-menu">
         <!-- Universal Links -->
         <li class="menu-item">
-            <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+                <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):?>
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php else:?>
+                <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php endif; ?>
                 <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
             </a>
@@ -155,7 +161,11 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="sidebar-footer">
         <div class="user-info">
             <i class="fa-solid fa-user-circle"></i>
-            <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(substr($_SESSION['full_name'], 0, 20)) : 'المستخدم' ?></span>
+            <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+                <a href="/irb-digital-system/features/student/profile.php" class="user-name" style="text-decoration: none;"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8')) : 'المستخدم' ?></a>
+            <?php else:?>
+                <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8'))  : 'المستخدم' ?></span>
+            <?php endif; ?>
         </div>
         <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn">
             <i class="fa-solid fa-right-from-bracket"></i>
