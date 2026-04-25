@@ -56,8 +56,8 @@ if($case == 'accept' && $app['current_stage']=='pending_admin'){
     $database->insert("logs",$logs);
 
     //push notification
-    
-    $message = "تم رفض بحث $serial_number " ; 
+    $reasons = $_SESSION['refusal_reason'];
+    $message = "تم رفض بحث $serial_number للاسباب : $reasons" ; 
     $channel = "system";
     $sql = "INSERT INTO notifications 
     (user_id, application_id, message, channel)
@@ -66,6 +66,7 @@ if($case == 'accept' && $app['current_stage']=='pending_admin'){
     $stmt->bind_param("iiss", $app_student_id, $app_id, $message, $channel);
     $stmt->execute();
     $stmt->close();
+    $_SESSION['refusal_reason'] = "";
 }
 
 
