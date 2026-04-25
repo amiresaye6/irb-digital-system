@@ -96,8 +96,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     //Success insert files
-    $research_dir = __DIR__ . "/../../uploads/researches/";
-    $documents_dir = __DIR__ . "/../../uploads/documents/";
+    $research_dir  = __DIR__ . "/../../uploads/researches/";
+    $documents_dir = __DIR__ . "/../../uploads/documents/$last_id/";
+    $research_dir_db = "uploads/researches/";
+    $documents_dir_db = "uploads/documents/$last_id/";
 
     if (!is_dir($research_dir)) mkdir($research_dir, 0755, true);
     if (!is_dir($documents_dir)) mkdir($documents_dir, 0755, true);
@@ -106,16 +108,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $docStmt = $database->conn->prepare($docSql);
 
     foreach ($file_fields as $field_name => $field_label) {
-        $file_name   = basename($_FILES[$field_name]["name"]);
+        $file_name = basename($_FILES[$field_name]["name"]);
+
         if ($field_name === 'research') {
-            $destination = $research_dir . $last_id . "_" . $field_name . "_" . $file_name;
+            $abs_destination = $research_dir    . $last_id . "_" . $field_name . "_" . $file_name;
+            $db_path         = $research_dir_db . $last_id . "_" . $field_name . "_" . $file_name;
         } else {
-            $destination = $documents_dir . $last_id . "_" . $field_name . "_" . $file_name;
+            $abs_destination = $documents_dir    . $last_id . "_" . $field_name . "_" . $file_name;
+            $db_path         = $documents_dir_db . $last_id . "_" . $field_name . "_" . $file_name;
         }
-        move_uploaded_file($_FILES[$field_name]["tmp_name"], $destination);
-        $docStmt->bind_param("iss", $last_id, $field_name, $destination);
+
+        move_uploaded_file($_FILES[$field_name]["tmp_name"], $abs_destination); // الرفع بالمسار الكامل
+        $docStmt->bind_param("iss", $last_id, $field_name, $db_path);           // الداتابيز بالمسار القصير
         $docStmt->execute();
     };
+
+
 
 
     $logs = [

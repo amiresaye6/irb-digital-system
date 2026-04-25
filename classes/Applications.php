@@ -9,6 +9,23 @@ class Applications {
         $this->db = $database->conn;
     }
 
+    public function getApplicationsByStatus($status) {
+        $sql = "SELECT a.id,a.student_id, a.serial_number, a.title, a.principal_investigator, a.current_stage, a.created_at, a.updated_at
+                FROM applications a 
+                WHERE a.current_stage = ? 
+                ORDER BY a.created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("s", $status);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $apps = [];
+        while ($row = $result->fetch_assoc()) {
+            $apps[] = $row;
+        }
+        return $apps;
+    }
+
+ 
     public function getStudentApplications($student_id) {
         $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, a.current_stage, a.created_at, a.updated_at
                 FROM applications a 

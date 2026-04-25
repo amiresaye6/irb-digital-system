@@ -81,7 +81,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة الإدارة</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/pending_applications.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/admin/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/pending_applications.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>الطلبات قيد المراجعة</span>
                 </a>
