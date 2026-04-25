@@ -17,7 +17,7 @@ class Auth {
             $allowed_roles = [$allowed_roles];
         }
         if(!in_array($_SESSION['role'], $allowed_roles)) {
-            header("Location: /index.php?error=unauthorized");
+            header("Location: /irb-digital-system/unauthorized.php");
             exit();
         }
     }
