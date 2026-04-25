@@ -22,7 +22,7 @@ include '../../includes/header.php';
 ?>
 <link rel="stylesheet" href="/irb-digital-system/assets/css/reportsAndStatistics.css">
 
-<div class="page-header" style="margin-right: 230px; margin-top:35px">
+<div class="page-header" style="margin-right: 230px;">
     <h2 class="page-title"><i class="fa-solid fa-chart-line"></i> التقارير والإحصائيات</h2>
 </div>
 

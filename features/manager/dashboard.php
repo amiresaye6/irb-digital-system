@@ -132,7 +132,7 @@ include '../../includes/header.php';
     }
 </style>
 
-<div class="main-content" style="margin-top: 70px;">
+<div class="main-content" style="margin-top: 5px;">
     <div class="table-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
