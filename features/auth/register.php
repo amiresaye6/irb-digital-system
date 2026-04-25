@@ -333,8 +333,9 @@ unset($_SESSION['old_data']);
                 <label>رقم الهاتف الجوال</label>
                 <input type="text" name="phone_number"
                        placeholder="01X XXXX XXXX"
-                       value="<?php echo htmlspecialchars($old_data['phone_number'] ?? ''); ?>">
-                       required
+                       value="<?php echo htmlspecialchars($old_data['phone_number'] ?? ''); ?>"
+                       required>
+                       
             </div>
             <div class="field">
                 <label>رقم البطاقة الشخصية (الرقم القومي)</label>
@@ -351,15 +352,16 @@ unset($_SESSION['old_data']);
                 <label>الكلية</label>
                 <input type="text" name="faculty"
                        placeholder="اختر الكلية"
-                       value="<?php echo htmlspecialchars($old_data['faculty'] ?? ''); ?>">
-                       required
+                       value="<?php echo htmlspecialchars($old_data['faculty'] ?? ''); ?>"
+                       required>
+                      
             </div>
             <div class="field">
                 <label>القسم العلمي</label>
                 <input type="text" name="department"
                        placeholder="مثال: قسم الجراحة العامة"
-                       value="<?php echo htmlspecialchars($old_data['department'] ?? ''); ?>">
-                       required
+                       value="<?php echo htmlspecialchars($old_data['department'] ?? ''); ?>"
+                       required>
             </div>
         </div>
 
