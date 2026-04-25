@@ -28,7 +28,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 <i class="fa-solid fa-microscope"></i>
                 <h1>لجنة مراجعة الأبحاث (IRB)</h1>
             </div>
-
+            <div class="nav-search">
+                <div class="search-wrapper">
+                    <input type="text" placeholder="البحث عن دراسة، باحث أو رقم ملف..." id="dashboardSearch">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+            </div>
             <div class="nav-user">
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <span class="user-greeting">مرحباً، <?= htmlspecialchars($_SESSION['full_name']); ?></span>
@@ -46,4 +51,5 @@ if (session_status() === PHP_SESSION_NONE) {
             }
             ?>
 
-            <main class="content-area"></main>
+            <main class="content-area">
+

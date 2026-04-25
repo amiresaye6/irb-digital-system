@@ -3,3 +3,5 @@ myplans
 *.pdf
 /vendor/
 composer.phar
+notes.txt
+

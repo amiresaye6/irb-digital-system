@@ -25,7 +25,7 @@ $dbobj->insert("logs", [
 
 switch($user['role']) {
     case 'student':
-        header("Location: ../../features/student/profile.php");
+        header("Location: ../../features/student/dashboard.php");
         break;
     case 'admin':
         header("Location: ../../features/admin/dashboard.php");
@@ -34,7 +34,7 @@ switch($user['role']) {
         header("Location: ../../features/sample_officer/dashboard.php");
         break;
     case 'reviewer':
-        header("Location:../../features/reviewer/dashboard.php");
+        header("Location:../../features/reviewer/assigned_reserches.php");
         break;
     case 'manager':
         header("Location: ../../features/manager/dashboard.php");

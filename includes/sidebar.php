@@ -17,6 +17,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 ?>
 
+<div class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fa-solid fa-bars"></i>
+</div>
+
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">
@@ -27,14 +31,20 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
 
     <ul class="sidebar-menu">
-        <!-- Universal Links -->
         <li class="menu-item">
-            <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
-                <i class="fa-solid fa-chart-line"></i>
+            <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+                <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'):?>
+                <a href="/irb-digital-system/features/sample_officer/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/sample_officer/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):?>
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'manager'):?>
+                <a href="/irb-digital-system/features/manager/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php endif; ?>
+            <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
             </a>
         </li>
-
         <!-- Student Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
             <?php
@@ -58,6 +68,18 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
             <li class="menu-item">
+                <a href="/irb-digital-system/features/student/pending_payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/pending_payments.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <span>المدفوعات المعلقة</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/student/payment_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/payment_history.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span>سجل المدفوعات</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/features/student/student_notifications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/student_notifications.php', '/irb-digital-system/features/student/notification_details.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-bell"></i>
                     <span>الإشعارات</span>
@@ -68,13 +90,12 @@ if (session_status() === PHP_SESSION_NONE) {
             </li>
         <?php endif; ?>
 
-        <!-- Admin Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة الإدارة</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/pending_applications.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/admin/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/pending_applications.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>الطلبات قيد المراجعة</span>
                 </a>
@@ -86,11 +107,17 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/admin_dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/admin_dashboard.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>إدارة المدفوعات</span>
+                </a>
+            </li>
+            <!--li class="menu-item">
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-gauge"></i>
                     <span>لوحة معلومات الإدارة</span>
                 </a>
-            </li>
+            </li-->
         <?php endif; ?>
 
         <!-- Sample Officer Role Links -->
@@ -99,20 +126,13 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة ضابط العينات</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/sample_requests.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/sample_requests.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-calculator"></i>
-                    <span>حساب حجم العينة</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="/irb-digital-system/sample_statistics.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/sample_statistics.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-chart-bar"></i>
-                    <span>إحصائيات العينات</span>
+                <a href="/irb-digital-system/features/sample_officer/requests_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/sample_officer/requests_history.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>سجل العينات المنجزة</span>
                 </a>
             </li>
         <?php endif; ?>
 
-        <!-- Reviewer Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'reviewer'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة المراجع</span>
@@ -131,7 +151,6 @@ if (session_status() === PHP_SESSION_NONE) {
             </li>
         <?php endif; ?>
 
-        <!-- Manager Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة المدير</span>
@@ -143,13 +162,13 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/final_approvals.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/manager/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/final_approvals.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-stamp"></i>
                     <span>الاعتمادات النهائية</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/system_reports.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/system_reports.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/manager/system_reportsAndStatistics.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/system_reportsAndStatistics.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>التقارير والإحصائيات</span>
                 </a>
@@ -157,13 +176,16 @@ if (session_status() === PHP_SESSION_NONE) {
         <?php endif; ?>
     </ul>
 
-    <!-- Sidebar Footer -->
     <div class="sidebar-footer">
         <div class="user-info">
             <i class="fa-solid fa-user-circle"></i>
-            <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(substr($_SESSION['full_name'], 0, 20)) : 'المستخدم' ?></span>
+            <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
+                <a href="/irb-digital-system/features/student/profile.php" class="user-name" style="text-decoration: none;"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8')) : 'المستخدم' ?></a>
+            <?php else:?>
+                <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8'))  : 'المستخدم' ?></span>
+            <?php endif; ?>
         </div>
-        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn">
+        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn" title="تسجيل الخروج">
             <i class="fa-solid fa-right-from-bracket"></i>
         </a>
     </div>
@@ -398,4 +420,48 @@ if (session_status() === PHP_SESSION_NONE) {
     .sidebar::-webkit-scrollbar-thumb:hover {
         background: var(--accent-base);
     }
+
+    /*responsive*/
+    .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: var(--primary-base, #1abc9c);
+        color: white;
+        padding: 10px 15px;
+        border-radius: var(--radius-md, 8px);
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 1000px) {
+        .mobile-menu-btn {
+            display: block;
+        }
+        
+        .sidebar {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+        }
+
+        .sidebar.sidebar-open {
+            transform: translateX(0);
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var menuBtn = document.getElementById('mobileMenuBtn');
+        var sidebar = document.querySelector('.sidebar');
+
+        if (menuBtn && sidebar) {
+            menuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-open');
+            });
+        }
+    });
+</script>

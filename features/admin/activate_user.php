@@ -1,9 +1,8 @@
 <?php
 session_start();
 require_once "../../init.php";
-Auth::checkRole('admin');
-
-$user_id = $_POST['user_id'] ?? null;
+Auth::checkRole(['admin']);
+$user_id = $_GET['id'] ?? null;
 
 if($user_id) {
     $dbobj = new Database();
@@ -26,14 +25,9 @@ if($user_id) {
             "user_id" => $_SESSION['user_id'],
             "action"  => "تفعيل حساب رقم " . $user_id . " وإنشاء رقم تسلسلي: " . $serial
         ]);
-    } else {
-        $dbobj->insert("logs", [
-            "user_id" => $_SESSION['user_id'],
-            "action"  => "تفعيل حساب رقم " . $user_id . " (application موجودة مسبقاً)"
-        ]);
     }
 }
 
-header("Location: dashboard.php");
+header("Location: dashboard.php"); 
 exit();
 ?>

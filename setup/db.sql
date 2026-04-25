@@ -85,11 +85,13 @@ CREATE TABLE payments (
     amount DECIMAL(10,2) ,
     provider VARCHAR(50),
     transaction_reference VARCHAR(100),
+    gateway_transaction_id VARCHAR(100) NULL,
     status ENUM('pending','completed','failed') DEFAULT 'pending',
+    gateway_response JSON NULL,
     paid_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
 );
-
 CREATE TABLE reviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT,
@@ -148,27 +150,27 @@ CREATE TABLE logs (
 -- Triggers for Payments
 DELIMITER //
 
-CREATE TRIGGER before_payments_insert
-BEFORE INSERT ON payments
-FOR EACH ROW
-BEGIN
-    IF NEW.phase = 'initial' THEN
-        SET NEW.amount = 500.00;
-    ELSEIF NEW.phase = 'sample' THEN
-        SET NEW.amount = (SELECT sample_amount FROM sample_sizes WHERE application_id = NEW.application_id LIMIT 1);
-    END IF;
-END//
+-- CREATE TRIGGER before_payments_insert
+-- BEFORE INSERT ON payments
+-- FOR EACH ROW
+-- BEGIN
+--     IF NEW.phase = 'initial' THEN
+--         SET NEW.amount = 500.00;
+--     ELSEIF NEW.phase = 'sample' THEN
+--         SET NEW.amount = (SELECT sample_amount FROM sample_sizes WHERE application_id = NEW.application_id LIMIT 1);
+--     END IF;
+-- END//
 
-CREATE TRIGGER before_payments_update
-BEFORE UPDATE ON payments
-FOR EACH ROW
-BEGIN
-    IF NEW.phase = 'initial' THEN
-        SET NEW.amount = 500.00;
-    ELSEIF NEW.phase = 'sample' THEN
-        SET NEW.amount = (SELECT sample_amount FROM sample_sizes WHERE application_id = NEW.application_id LIMIT 1);
-    END IF;
-END//
+-- CREATE TRIGGER before_payments_update
+-- BEFORE UPDATE ON payments
+-- FOR EACH ROW
+-- BEGIN
+--     IF NEW.phase = 'initial' THEN
+--         SET NEW.amount = 500.00;
+--     ELSEIF NEW.phase = 'sample' THEN
+--         SET NEW.amount = (SELECT sample_amount FROM sample_sizes WHERE application_id = NEW.application_id LIMIT 1);
+--     END IF;
+-- END//
 
 CREATE TRIGGER after_reviews_update
 AFTER UPDATE ON reviews
@@ -301,31 +303,16 @@ INSERT INTO documents (application_id, document_type, file_path) VALUES
 (14, 'protocol', 'uploads/seed/dummy_protocol.pdf'),
 (15, 'protocol', 'uploads/seed/dummy_protocol.pdf');
 
--- 7. Seed Payments
-INSERT INTO payments (application_id, phase, amount, provider, transaction_reference, status, paid_at) VALUES 
-(1, 'initial', 500.00, 'Fawry', 'FW1001', 'completed', '2026-03-02 10:00:00'),
-(1, 'sample', 350.00, 'Fawry', 'FW1002', 'completed', '2026-03-05 12:00:00'),
-(2, 'initial', 500.00, 'Paymob', 'PM2001', 'completed', '2026-04-11 09:00:00'),
-(2, 'sample', 800.00, 'Fawry', 'FW2002', 'completed', '2026-04-14 10:00:00'),
-(3, 'initial', 500.00, 'InstaPay', 'IP3001', 'completed', '2026-04-16 11:00:00'),
-(4, 'initial', 500.00, 'Fawry', 'FW4001', 'completed', '2026-02-21 10:00:00'),
-(4, 'sample', 400.00, 'Fawry', 'FW4002', 'completed', '2026-02-25 10:00:00'),
-(5, 'initial', 500.00, 'Fawry', NULL, 'pending', NULL),
-(7, 'initial', 500.00, 'Paymob', 'PM7001', 'completed', '2026-04-22 10:00:00'),
-(7, 'sample', 300.00, 'Fawry', NULL, 'pending', NULL),
-(8, 'initial', 500.00, 'InstaPay', 'IP8001', 'completed', '2026-01-16 10:00:00'),
-(8, 'sample', 1200.00, 'InstaPay', 'IP8002', 'completed', '2026-01-22 10:00:00'),
-(9, 'initial', 500.00, 'Fawry', 'FW9001', 'completed', '2026-04-18 12:00:00'),
-(9, 'sample', 400.00, 'Paymob', 'PM9002', 'completed', '2026-04-20 10:00:00'),
-(10, 'initial', 500.00, 'InstaPay', 'IP10001', 'completed', '2026-04-23 09:00:00'),
-(12, 'initial', 500.00, 'Fawry', 'FW1201', 'completed', '2026-04-20 12:00:00'),
-(12, 'sample', 400.00, 'Fawry', 'FW1202', 'completed', '2026-04-21 12:00:00'),
-(13, 'initial', 500.00, 'Paymob', 'PM1301', 'completed', '2026-04-21 10:00:00'),
-(13, 'sample', 300.00, 'Paymob', 'PM1302', 'completed', '2026-04-22 10:00:00'),
-(14, 'initial', 500.00, 'InstaPay', 'IP1401', 'completed', '2026-04-22 11:00:00'),
-(14, 'sample', 350.00, 'InstaPay', 'IP1402', 'completed', '2026-04-23 11:00:00'),
-(15, 'initial', 500.00, 'Fawry', 'FW1501', 'completed', '2026-04-23 09:00:00'),
-(15, 'sample', 500.00, 'Fawry', 'FW1502', 'completed', '2026-04-24 09:00:00');
+-- 6. Seed Payments
+INSERT INTO payments (application_id, phase, amount, provider, transaction_reference, gateway_transaction_id, status, gateway_response, paid_at, created_at) VALUES 
+(1, 'initial', 500.00, 'Fawry', 'FW1001', '511625001', 'completed', '{"message": "Approved"}', '2026-03-02 10:00:00', '2026-03-02 09:50:00'),
+(1, 'sample', 350.00, 'Fawry', 'FW1002', '511625002', 'completed', '{"message": "Approved"}', '2026-03-05 12:00:00', '2026-03-05 11:45:00'),
+(2, 'initial', 500.00, 'Paymob', 'PM2001', '511625436', 'completed', '{"message": "Approved", "source_data": {"type": "card", "sub_type": "MasterCard"}}', '2026-04-11 09:00:00', '2026-04-11 08:55:00'),
+(2, 'sample', 800.00, 'Fawry', 'FW2002', '511625004', 'completed', '{"message": "Approved"}', '2026-04-14 10:00:00', '2026-04-14 09:50:00'),
+(3, 'initial', 500.00, 'InstaPay', 'IP3001', '511625005', 'completed', '{"message": "Approved"}', '2026-04-16 11:00:00', '2026-04-16 10:55:00'),
+(4, 'initial', 500.00, 'Fawry', 'FW4001', '511625006', 'completed', '{"message": "Approved"}', '2026-02-21 10:00:00', '2026-02-21 09:55:00'),
+(4, 'sample', 400.00, 'Fawry', 'FW4002', '511625007', 'completed', '{"message": "Approved"}', '2026-02-25 10:00:00', '2026-02-25 09:50:00'),
+(5, 'initial', 500.00, 'Paymob', 'PM5001', '511676577', 'pending', NULL, NULL, '2026-04-23 19:43:43');
 
 -- 8. Seed Reviews
 INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision, reviewed_at) VALUES 
