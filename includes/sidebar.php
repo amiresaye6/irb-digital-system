@@ -414,4 +414,48 @@ if (session_status() === PHP_SESSION_NONE) {
     .sidebar::-webkit-scrollbar-thumb:hover {
         background: var(--accent-base);
     }
+
+    /*responsive*/
+    .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: var(--primary-base, #1abc9c);
+        color: white;
+        padding: 10px 15px;
+        border-radius: var(--radius-md, 8px);
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 1000px) {
+        .mobile-menu-btn {
+            display: block;
+        }
+        
+        .sidebar {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+        }
+
+        .sidebar.sidebar-open {
+            transform: translateX(0);
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var menuBtn = document.getElementById('mobileMenuBtn');
+        var sidebar = document.querySelector('.sidebar');
+
+        if (menuBtn && sidebar) {
+            menuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-open');
+            });
+        }
+    });
+</script>

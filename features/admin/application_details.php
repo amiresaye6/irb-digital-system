@@ -45,6 +45,12 @@ $docLabels = [
     'protocol_review_app' => ['نموذج مراجعة البروتوكول', 'fa-file-shield', '#16a085'],
 ];
 $success_msg = $_GET['success'] ?? null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_POST['redirect_href'])) {
+    $_SESSION['refusal_reason'] = trim($_POST['refusal_reason']);
+    header("Location: " . $_POST['redirect_href']);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -725,6 +731,38 @@ $success_msg = $_GET['success'] ?? null;
             background: #c0392b;
         }
 
+        .irb-modal-reason-label {
+            display: none;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #c0392b;
+            margin-bottom: 6px;
+            text-align: right;
+        }
+
+        .irb-modal-reason {
+            display: none;
+            width: 100%;
+            border: 1.5px solid rgba(189,195,199,0.9);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+            resize: vertical;
+            min-height: 90px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            transition: border-color var(--transition-smooth);
+        }
+
+        .irb-modal-reason:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231,76,60,0.12);
+        }
+
         .alert-success {
             background: linear-gradient(135deg, #d5f5e3 0%, #eafaf1 100%);
             color: #1e8449;
@@ -772,6 +810,12 @@ $success_msg = $_GET['success'] ?? null;
             <div class="irb-modal-icon" id="modalIcon"></div>
             <div class="irb-modal-title" id="modalTitle"></div>
             <div class="irb-modal-subtitle" id="modalSubtitle"></div>
+            <div class="irb-modal-reason-label" id="modalReasonLabel"><i class="fa-solid fa-pen"></i> سبب الرفض</div>
+            <textarea class="irb-modal-reason" id="modalReason" placeholder="اكتب سبب الرفض هنا..."></textarea>
+            <form method="POST" id="rejectForm" style="display:none">
+                <input type="hidden" name="refusal_reason" id="rejectReasonInput">
+                <input type="hidden" name="redirect_href" id="rejectHrefInput">
+            </form>
             <div class="irb-modal-actions">
                 <button type="button" class="irb-modal-cancel" id="modalCancel">
                     <i class="fa-solid fa-arrow-right"></i> لا، تراجع
@@ -934,15 +978,36 @@ $success_msg = $_GET['success'] ?? null;
                 ? 'هل أنت متأكد من قبول هذا البحث؟ لا يمكن التراجع عن هذا الإجراء.'
                 : 'هل أنت متأكد من رفض هذا البحث؟ لا يمكن التراجع عن هذا الإجراء.';
 
+            document.getElementById('modalReasonLabel').style.display = isAccept ? 'none' : 'block';
+            document.getElementById('modalReason').style.display = isAccept ? 'none' : 'block';
+            document.getElementById('modalReason').value = '';
+
             const confirmBtn = document.getElementById('modalConfirm');
             confirmBtn.className = 'irb-modal-confirm ' + type;
             confirmBtn.innerHTML = isAccept
                 ? '<i class="fa-solid fa-check"></i> نعم، قبول'
                 : '<i class="fa-solid fa-xmark"></i> نعم، رفض';
             confirmBtn.href = href;
+            confirmBtn.dataset.type = type;
+            confirmBtn.dataset.href = href;
 
             document.getElementById('confirmModal').classList.add('active');
         }
+
+        document.getElementById('modalConfirm').addEventListener('click', function (e) {
+            if (this.dataset.type === 'reject') {
+                e.preventDefault();
+                const reason = document.getElementById('modalReason').value.trim();
+                if (!reason) {
+                    document.getElementById('modalReason').focus();
+                    document.getElementById('modalReason').style.borderColor = '#e74c3c';
+                    return;
+                }
+                document.getElementById('rejectReasonInput').value = reason;
+                document.getElementById('rejectHrefInput').value = this.dataset.href;
+                document.getElementById('rejectForm').submit();
+            }
+        });
 
         document.getElementById('modalCancel').addEventListener('click', function () {
             document.getElementById('confirmModal').classList.remove('active');
