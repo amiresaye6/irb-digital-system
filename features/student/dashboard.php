@@ -1,9 +1,10 @@
 <?php
 require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('student'); 
+
 require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/sidebar.php';
 require_once __DIR__ . '/../../classes/Applications.php';
-Auth::checkRole('student'); 
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

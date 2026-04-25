@@ -112,12 +112,12 @@ if (session_status() === PHP_SESSION_NONE) {
                     <span>إدارة المدفوعات</span>
                 </a>
             </li>
-            <li class="menu-item">
+            <!--li class="menu-item">
                 <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-gauge"></i>
                     <span>لوحة معلومات الإدارة</span>
                 </a>
-            </li>
+            </li-->
         <?php endif; ?>
 
         <!-- Sample Officer Role Links -->

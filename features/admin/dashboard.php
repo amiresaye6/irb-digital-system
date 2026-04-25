@@ -48,7 +48,6 @@ foreach ($allUsers as $u) {
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .page-title { color:var(--primary-base); font-weight:800; font-size:1.6rem; margin:0; }
 
-        /* ستايل السيرش المظبوط */
         .toolbar-card { 
             background: linear-gradient(180deg,rgba(44,62,80,0.04) 0%,#fff 100%); 
             border: 1px solid rgba(189,195,199,0.6); 
@@ -63,7 +62,6 @@ foreach ($allUsers as $u) {
             background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237f8c8d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat right 12px center;
         }
 
-        /* جداول منفصلة */
         .section-title { font-weight: 800; color: var(--primary-base); margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
         .data-card { background:var(--bg-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); border:1px solid var(--border-light); padding: 20px; margin-bottom: 20px; }
         
@@ -71,7 +69,6 @@ foreach ($allUsers as $u) {
         .data-table th { padding:12px; background:var(--primary-base); color:white; font-weight:700; font-size:0.85rem; }
         .data-table td { padding:12px; border-bottom:1px solid var(--border-light); font-size: 0.9rem; }
 
-        /* أزرار الأكشن */
         .btn-action { padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-approve { background: #27ae60; color: white !important; border: none; }
         .btn-reject { background: #e74c3c; color: white !important; border: none; margin-right: 5px; }
@@ -96,7 +93,7 @@ foreach ($allUsers as $u) {
                 <label style="display:block; font-weight:800; font-size:0.8rem; margin-bottom:5px;">البحث العام</label>
                 <input type="text" id="mainSearch" class="search-input" placeholder="بحث بالاسم، البريد، الرقم القومي...">
             </div>
-            <div style="width: 200px;">
+            <div style="width: 200px;display: none;">
                 <label style="display:block; font-weight:800; font-size:0.8rem; margin-bottom:5px;">نوع الحساب</label>
                 <select id="roleFilter" class="search-input" style="background-image:none; padding-right:12px;">
                     <option value="all">الكل</option>

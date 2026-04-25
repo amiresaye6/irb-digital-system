@@ -21,8 +21,7 @@ unset($_SESSION['success'], $_SESSION['errors']);
     <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css">
     
     <style>
-        body { background: var(--bg-page); }
-        
+body { background: var(--bg-page); font-family: 'Cairo', sans-serif; margin: 0; }        
         /* ضبط المساحة للمحتوى بجانب الـ Sidebar */
         .content-wrapper {
             margin-right: 260px;
