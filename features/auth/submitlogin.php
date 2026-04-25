@@ -34,7 +34,7 @@ switch($user['role']) {
         header("Location: ../../features/sample_officer/dashboard.php");
         break;
     case 'reviewer':
-        header("Location:../../features/reviewer/dashboard.php");
+        header("Location:../../features/reviewer/assigned_reserches.php");
         break;
     case 'manager':
         header("Location: ../../features/manager/dashboard.php");
