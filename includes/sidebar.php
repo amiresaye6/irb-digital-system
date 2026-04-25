@@ -35,17 +35,17 @@ if (session_status() === PHP_SESSION_NONE) {
             <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
                 <a href="/irb-digital-system/features/student/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/dashboard.php']) ? ' is-active' : '' ?>">
             <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'):?>
-                <a href="/irb-digital-system/features/sample_officer/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/sample_officer/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/sample_officer/dashboard.php']) ? ' is-active' : '' ?>">
             <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'):?>
                 <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
-            <?php else:?>
-                <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'manager'):?>
+                <a href="/irb-digital-system/features/manager/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard.php']) ? ' is-active' : '' ?>">
             <?php endif; ?>
-                <i class="fa-solid fa-chart-line"></i>
+            <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
             </a>
         </li>
-
+        <!-- Student Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
             <?php
                 require_once __DIR__ . '/../classes/Applications.php';
@@ -121,11 +121,11 @@ if (session_status() === PHP_SESSION_NONE) {
         <?php endif; ?>
 
         <!-- Sample Officer Role Links -->
-       <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'): ?>
+        <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'sample_officer'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة ضابط العينات</span>
             </li>
-           <li class="menu-item">
+            <li class="menu-item">
                 <a href="/irb-digital-system/features/sample_officer/requests_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/sample_officer/requests_history.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>سجل العينات المنجزة</span>
@@ -179,7 +179,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8'))  : 'المستخدم' ?></span>
             <?php endif; ?>
         </div>
-        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn">
+        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn" title="تسجيل الخروج">
             <i class="fa-solid fa-right-from-bracket"></i>
         </a>
     </div>

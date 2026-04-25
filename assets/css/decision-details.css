@@ -1,0 +1,395 @@
+/* Decision Details Page Styling */
+
+/* Page Container */
+.decision-details-page {
+    margin-top: 100px;
+    margin-right: 300px;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, var(--bg-page) 0%, rgba(26, 37, 47, 0.02) 100%);
+    min-height: 100vh;
+}
+
+/* Main Card Container */
+.decision-details-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 40px;
+    border: 1px solid rgba(26, 37, 47, 0.08);
+    border-top: 4px solid var(--accent-base);
+    transition: all var(--transition-smooth);
+}
+
+.decision-details-card:hover {
+    box-shadow: 0 12px 24px rgba(26, 173, 156, 0.15);
+    border-top-color: var(--accent-dark);
+}
+
+/* Header Section */
+.decision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.decision-header h3 {
+    color: var(--primary-base);
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.decision-header h3 i {
+    color: var(--accent-base);
+    font-size: 1.6rem;
+}
+
+/* Info Grid */
+.decision-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.info-item {
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-light) 100%);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--accent-base);
+}
+
+.info-item label {
+    display: block;
+    font-weight: 700;
+    color: var(--primary-base);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* Serial Number Badge */
+.serial-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent-base), var(--accent-dark));
+    color: white !important;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    font-size: 1.05rem;
+}
+
+.serial-badge i {
+    font-size: 1.2rem;
+}
+
+/* Comment Box */
+.review-comment-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, var(--primary-light) 100%);
+    border-radius: var(--radius-md);
+    padding: 25px;
+    margin-bottom: 35px;
+    border-left: 5px solid var(--accent-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.review-comment-section h5 {
+    color: var(--primary-base);
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-comment-section h5 i {
+    color: var(--accent-base);
+    font-size: 1.3rem;
+}
+
+.review-comment-section p {
+    color: var(--text-main);
+    line-height: 1.8;
+    font-size: 1.05rem;
+    margin: 0;
+    padding: 15px;
+    background: white;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+}
+
+.review-comment-section p:empty::before {
+    content: 'لا يوجد تعليق مكتوب';
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Decision Status Section */
+.decision-status-section {
+    margin-bottom: 35px;
+    padding: 25px;
+    background: white;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-light);
+    transition: all var(--transition-smooth);
+}
+
+.decision-status-section:hover {
+    border-color: var(--accent-base);
+    box-shadow: var(--shadow-md);
+}
+
+.decision-status-section h5 {
+    color: var(--primary-base);
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Decision Button - Dynamic based on decision type */
+.decision-btn {
+    padding: 20px 40px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-smooth);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 300px;
+    justify-content: center;
+}
+
+/* Decision Status Variants */
+.decision-approved {
+    background: linear-gradient(135deg, var(--success-base), #20c997);
+    color: white;
+}
+
+.decision-approved i {
+    font-size: 1.3rem;
+}
+
+.decision-needs-modification {
+    background: linear-gradient(135deg, var(--warning-base), #ff9800);
+    color: white;
+}
+
+.decision-needs-modification i {
+    font-size: 1.3rem;
+}
+
+.decision-rejected {
+    background: linear-gradient(135deg, var(--alert-base), #c0392b);
+    color: white;
+}
+
+.decision-rejected i {
+    font-size: 1.3rem;
+}
+.decision-pending {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-base));
+    color: white;
+}
+/* Actions Footer */
+.decision-actions-footer {
+    margin-top: 40px;
+    padding-top: 25px;
+    border-top: 2px solid var(--border-light);
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.decision-actions-footer .btn {
+    padding: 12px 30px;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-approve-final {
+    background: linear-gradient(135deg, var(--success-base), #20c997);
+    color: white;
+    border-color: var(--success-base);
+}
+
+.btn-approve-final:hover {
+    background: linear-gradient(135deg, #229954, #1aa179);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.btn-reject {
+    background: transparent;
+    color: var(--alert-base);
+    border-color: var(--alert-base);
+}
+
+.btn-reject:hover {
+    background: var(--alert-base);
+    color: white;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.btn-return-reviewer {
+    background: transparent;
+    color: var(--primary-base);
+    border-color: var(--primary-base);
+}
+
+.btn-return-reviewer:hover {
+    background: var(--primary-base);
+    color: white;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.btn i {
+    font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .decision-details-page {
+        margin-right: 0;
+        padding: 20px 10px;
+    }
+
+    .decision-details-card {
+        padding: 25px 20px;
+    }
+
+    .decision-info-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .decision-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .decision-header h3 {
+        font-size: 1.5rem;
+    }
+
+    .serial-badge {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .decision-btn {
+        min-width: 100%;
+    }
+
+    .decision-actions-footer {
+        flex-direction: column;
+    }
+
+    .decision-actions-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .decision-details-card {
+        padding: 20px 15px;
+    }
+
+    .decision-header h3 {
+        font-size: 1.3rem;
+    }
+
+    .info-item {
+        padding: 15px;
+    }
+
+    .info-item label {
+        font-size: 0.9rem;
+    }
+
+    .info-item p {
+        font-size: 1rem;
+    }
+
+    .decision-btn {
+        padding: 15px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.decision-details-card {
+    animation: slideInUp 0.5s ease-out;
+}
+
+/* Print Styles */
+@media print {
+    .decision-details-page {
+        margin: 0;
+        padding: 0;
+        background: white;
+    }
+
+    .decision-details-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+
+    .decision-actions-footer {
+        display: none;
+    }
+}
