@@ -153,17 +153,17 @@ $data = $_SESSION['form_data'] ?? [];
 
         @media (max-width: 1000px) {
             body {
-                margin-right: 0; /* إلغاء المساحة اللي كانت محجوزة للـ sidebar */
-                padding: 20px;   /* تقليل الحواف عشان الشاشات الصغيرة */
+                margin-right: 0; 
+                padding: 20px; 
             }
 
             .form-card {
-                padding: 20px;   /* تصغير الحواف الداخلية للكارت */
+                padding: 20px; 
                 margin: 20px auto;
             }
 
             .grid-container {
-                grid-template-columns: 1fr; /* جعل الحقول تحت بعضها تماماً */
+                grid-template-columns: 1fr; 
             }
         }
     </style>
