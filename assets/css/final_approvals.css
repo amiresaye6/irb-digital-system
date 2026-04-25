@@ -1,0 +1,90 @@
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    border: none !important;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #5d6d7e;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 15px;
+    border-bottom: 2px solid #edf2f7;
+    border-top: none;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table tbody td {
+    padding: 18px 15px;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #f4f6f6;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: #f9fbff !important;
+    transform: scale(1.002);
+    box-shadow: inset 4px 0 0 #3498db; 
+}
+
+.badge {
+    font-weight: 500;
+    padding: 8px 12px !important;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.bg-light-success {
+    background-color: #e8f8f5 !important;
+    color: #16a085 !important;
+    border: 1px solid #d1f2eb;
+}
+
+.bg-light-warning {
+    background-color: #fff9e6 !important;
+    color: #f39c12 !important;
+    border: 1px solid #fef5d9;
+}
+
+.btn-outline-primary {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 6px 15px;
+    border: 1px solid #3498db;
+    color: #3498db;
+    transition: all 0.3s;
+}
+
+.btn-outline-primary:hover {
+    background-color: #3498db;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+td strong {
+    color: #2c3e50; 
+    font-weight: 700; 
+    font-family: inherit; 
+    background: none;
+    padding: 0; 
+    font-size: 1rem; 
+}
+
+.table td:nth-child(2) {
+    max-width: 500px; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
