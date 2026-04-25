@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../../init.php';
-require_once __DIR__ . '/../../includes/sidebar.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -138,6 +137,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['form_data']   = [];
 
     
+    require_once __DIR__ . '/../../includes/sidebar.php';
+
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
