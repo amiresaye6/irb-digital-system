@@ -30,7 +30,7 @@ if (isset($_GET['id'])) {
     $review_id = $_GET['id'];
     $db = new Database();
     $conn = $db->getconn();
-    $sql = "SELECT r.*, a.title, a.serial_number, u.full_name as student_name 
+    $sql = "SELECT r.*, a.title, a.serial_number,a.current_stage, u.full_name as student_name 
             FROM reviews r
             JOIN applications a ON r.application_id = a.id
             JOIN users u ON a.student_id = u.id
@@ -38,6 +38,9 @@ if (isset($_GET['id'])) {
 
     $result = $conn->query($sql);
     $review = $result->fetch_assoc();
+
+    $comments_sql = "SELECT comment, created_at FROM review_comments WHERE review_id = $review_id ORDER BY created_at DESC";
+    $comments_result = $conn->query($comments_sql);
 }
 ?>
 
@@ -65,8 +68,24 @@ if (isset($_GET['id'])) {
             </div>
 
             <div class="review-comment-section">
-                <h5><i class="fa-solid fa-comment-dots"></i> تعليق المراجع</h5>
-                <p><?= nl2br(htmlspecialchars($review['comments'] ?? '')) ?></p>
+                <h5><i class="fa-solid fa-comment-dots"></i> تعليقات المراجع</h5>
+
+                <?php if ($comments_result && $comments_result->num_rows > 0): ?>
+                    <ul style="list-style: none; padding: 0;">
+                        <?php while ($comment_row = $comments_result->fetch_assoc()): ?>
+                            <li style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid #16a085;">
+                                <p style="margin: 0; font-size: 14px; color: #333;">
+                                    <?= nl2br(htmlspecialchars($comment_row['comment'])) ?>
+                                </p>
+                                <small style="color: #888; font-size: 11px;">
+                                    <i class="fa-regular fa-clock"></i> <?= $comment_row['created_at'] ?>
+                                </small>
+                            </li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else: ?>
+                    <p style="color: #888; font-style: italic;">لا توجد تعليقات مسجلة لهذا القرار.</p>
+                <?php endif; ?>
             </div>
 
             <div class="decision-status-section">
@@ -82,12 +101,32 @@ if (isset($_GET['id'])) {
             </div>
 
             <div class="decision-actions-footer">
-                <a href="process_decision.php?id=<?= $review_id ?>&action=approve" class="btn btn-approve-final" style="text-decoration: none;">
-                    <i class="fa-solid fa-check-circle"></i> اعتماد القرار النهائي
-                </a>
-                <a href="process_decision.php?id=<?= $review_id ?>&action=return" class="btn btn-return-reviewer" style="text-decoration: none;">
-                    <i class="fa-solid fa-undo"></i> إعادة للمراجع
-                </a>
+                <?php
+                if ($review['current_stage'] === 'approved_by_reviewer'): ?>
+
+                    <a href="process_decision.php?id=<?= $review_id ?>&action=approve" class="btn btn-approve-final" style="text-decoration: none;">
+                        <i class="fa-solid fa-check-circle"></i> اعتماد القرار النهائي
+                    </a>
+                    <a href="process_decision.php?id=<?= $review_id ?>&action=return" class="btn btn-return-reviewer" style="text-decoration: none;">
+                        <i class="fa-solid fa-undo"></i> إعادة للمراجع
+                    </a>
+
+                <?php   
+                elseif ($review['current_stage'] === 'approved'): ?>
+                    <div class="alert alert-success" style="width: 100%; text-align: center;">
+                        <i class="fa-solid fa-circle-check"></i> تم اعتماد البحث نهائياً وإصدار الشهادة.
+                        <br><br>
+                        <a href="view_certificate.php?app_id=<?= $review['application_id'] ?>" target="_blank" class="btn btn-view" style="background:#16a085; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">
+                            <i class="fa-solid fa-file-pdf"></i> عرض الشهادة
+                        </a>
+                    </div>
+
+                <?php  
+                elseif ($review['current_stage'] === 'under_review'): ?>
+                    <div class="alert alert-warning" style="width: 100%; text-align: center;">
+                        <i class="fa-solid fa-reply"></i> تم إعادة الطلب للمراجع لإجراء تعديلات.
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -96,44 +135,63 @@ if (isset($_GET['id'])) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-document.querySelectorAll('.decision-actions-footer .btn').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault(); // منع الصفحة من التحميل أو الانتقال
-        
-        const actionUrl = this.getAttribute('href'); // هيجيب الرابط اللي فيه الـ id والـ action
-        const actionText = this.innerText.trim();
+    document.querySelectorAll('.btn-approve-final, .btn-return-reviewer').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
 
-        Swal.fire({
-            title: 'تأكيد الإجراء',
-            text: `هل أنت متأكد من ${actionText}؟`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1abc9c',
-            cancelButtonColor: '#95a5a6',
-            confirmButtonText: 'نعم، تنفيذ',
-            cancelButtonText: 'إلغاء'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // تنفيذ الأكشن باستخدام Fetch (AJAX)
-                fetch(actionUrl)
-                    .then(response => {
-                        // إظهار رسالة نجاح تظهر وتختفي لوحدها
-                        Swal.fire({
-                            title: 'تم بنجاح!',
-                            text: 'تم تحديث حالة القرار فوراً.',
-                            icon: 'success',
-                            timer: 2000, // هتختفي بعد ثانيتين
-                            showConfirmButton: false
+            const actionUrl = this.getAttribute('href');
+            const actionText = this.innerText.trim();
+
+            Swal.fire({
+                title: 'تأكيد الإجراء',
+                text: `هل أنت متأكد من ${actionText}؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1abc9c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'نعم، تنفيذ',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(actionUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                if (actionUrl.includes('action=approve')) {
+                                    Swal.fire({
+                                        title: 'تم الاعتماد بنجاح!',
+                                        text: 'تم تحديث حالة البحث وتوليد شهادة الاعتماد.',
+                                        icon: 'success',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#16a085',
+                                        confirmButtonText: '<i class="fa fa-eye"></i> عرض الشهادة',
+                                        cancelButtonText: 'إغلاق'
+                                    }).then((res) => {
+                                        if (res.isConfirmed) {
+                                            window.open(data.cert_url, '_blank');
+                                        }
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'تم بنجاح!',
+                                        text: 'تمت إعادة الطلب للمراجع.',
+                                        icon: 'info',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                }
+                            } else {
+                                Swal.fire('تنبيه!', data.message, 'warning');
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('خطأ!', 'حدثت مشكلة في الاتصال بالسيرفر.', 'error');
                         });
-
-                        // اختياري: ممكن تعطلي الزراير بعد التنفيذ عشان ميدوسش تاني
-                        document.querySelector('.decision-actions-footer').style.display = 'none';
-                    })
-                    .catch(error => {
-                        Swal.fire('خطأ!', 'حدثت مشكلة أثناء التحديث.', 'error');
-                    });
-            }
+                }
+            });
         });
     });
-});
 </script>
