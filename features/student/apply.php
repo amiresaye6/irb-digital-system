@@ -209,7 +209,7 @@ $data = $_SESSION['form_data'] ?? [];
 
             <div class="field-group">
                 <label>المشاركون في البحث (مفصولين بفاصلة)</label>
-                <input type="text" name="co_investigators" placeholder="مثال : محمد رمضان , احمد العوضى" value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>" minlength="3" required>
+                <input type="text" name="co_investigators" placeholder="مثال : محمد ابراهيم , احمد اسامة  " value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>" minlength="3" required>
             </div>
 
             <div class="file-input-wrapper">

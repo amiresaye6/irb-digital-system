@@ -559,6 +559,172 @@ $success_msg = $_GET['success'] ?? null;
             transform: translateY(-2px);
         }
 
+        .btn-accept {
+            background: #27ae60;
+            color: white;
+            border: 2px solid #27ae60;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transition: all var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn-accept:hover {
+            background: #1e8449;
+            border-color: #1e8449;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(39,174,96,0.35);
+        }
+
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+            border: 2px solid #e74c3c;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transition: all var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn-reject:hover {
+            background: #c0392b;
+            border-color: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(231,76,60,0.35);
+        }
+
+        /* Confirm Modal */
+        .irb-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .irb-modal-overlay.active {
+            display: flex;
+        }
+
+        .irb-modal {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 32px 28px 24px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .irb-modal-icon {
+            font-size: 2.8rem;
+            margin-bottom: 14px;
+        }
+
+        .irb-modal-icon.accept {
+            color: #27ae60;
+        }
+
+        .irb-modal-icon.reject {
+            color: #e74c3c;
+        }
+
+        .irb-modal-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary-base);
+            margin-bottom: 8px;
+        }
+
+        .irb-modal-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .irb-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .irb-modal-cancel {
+            background: var(--primary-light);
+            color: var(--primary-base);
+            border: 2px solid var(--border-light);
+            padding: 10px 22px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .irb-modal-cancel:hover {
+            background: var(--border-light);
+        }
+
+        .irb-modal-confirm {
+            padding: 10px 22px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+
+        .irb-modal-confirm.accept {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .irb-modal-confirm.accept:hover {
+            background: #1e8449;
+        }
+
+        .irb-modal-confirm.reject {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        .irb-modal-confirm.reject:hover {
+            background: #c0392b;
+        }
+
         .alert-success {
             background: linear-gradient(135deg, #d5f5e3 0%, #eafaf1 100%);
             color: #1e8449;
@@ -599,6 +765,22 @@ $success_msg = $_GET['success'] ?? null;
 </head>
 <body>
     <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
+
+    <!-- Confirm Modal -->
+    <div class="irb-modal-overlay" id="confirmModal">
+        <div class="irb-modal">
+            <div class="irb-modal-icon" id="modalIcon"></div>
+            <div class="irb-modal-title" id="modalTitle"></div>
+            <div class="irb-modal-subtitle" id="modalSubtitle"></div>
+            <div class="irb-modal-actions">
+                <button type="button" class="irb-modal-cancel" id="modalCancel">
+                    <i class="fa-solid fa-arrow-right"></i> لا، تراجع
+                </button>
+                <a href="#" class="irb-modal-confirm" id="modalConfirm"></a>
+            </div>
+        </div>
+    </div>
+
     <div class="content">
         <h2 class="page-title"><i class="fa-solid fa-file-circle-check"></i> تفاصيل البحث</h2>
         <p class="page-subtitle">عرض بيانات البحث ومتابعة مسار التقدم</p>
@@ -721,20 +903,56 @@ $success_msg = $_GET['success'] ?? null;
         <!-- Actions -->
         <div class="card">
             <div class="action-area">
-    <a href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&case=accept" class="btn-secondary">
-        <i class="fa-solid fa-check"></i> قبول
-    </a>
-
-    <a href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&case=reject" class="btn-secondary">
-        <i class="fa-solid fa-xmark"></i> رفض
-    </a>
-
-    <a href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&case=modify" class="btn-secondary">
-        <i class="fa-solid fa-pen"></i> طلب تعديل
-    </a>
-</div>
-            
+                <button type="button" class="btn-accept"
+                    data-href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&serial_number=<?= $app['serial_number'] ?>&case=accept"
+                    data-type="accept"
+                    onclick="openConfirmModal(this)">
+                    <i class="fa-solid fa-check"></i> قبول
+                </button>
+                <button type="button" class="btn-reject"
+                    data-href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&serial_number=<?= $app['serial_number'] ?>&case=reject"
+                    data-type="reject"
+                    onclick="openConfirmModal(this)">
+                    <i class="fa-solid fa-xmark"></i> رفض
+                </button>
+            </div>
         </div>
     </div>
+
+    <script>
+        function openConfirmModal(btn) {
+            const type = btn.dataset.type;
+            const href = btn.dataset.href;
+            const isAccept = type === 'accept';
+
+            document.getElementById('modalIcon').className = 'irb-modal-icon ' + type;
+            document.getElementById('modalIcon').innerHTML = isAccept
+                ? '<i class="fa-solid fa-circle-check"></i>'
+                : '<i class="fa-solid fa-circle-xmark"></i>';
+            document.getElementById('modalTitle').textContent = isAccept ? 'تأكيد القبول' : 'تأكيد الرفض';
+            document.getElementById('modalSubtitle').textContent = isAccept
+                ? 'هل أنت متأكد من قبول هذا البحث؟ لا يمكن التراجع عن هذا الإجراء.'
+                : 'هل أنت متأكد من رفض هذا البحث؟ لا يمكن التراجع عن هذا الإجراء.';
+
+            const confirmBtn = document.getElementById('modalConfirm');
+            confirmBtn.className = 'irb-modal-confirm ' + type;
+            confirmBtn.innerHTML = isAccept
+                ? '<i class="fa-solid fa-check"></i> نعم، قبول'
+                : '<i class="fa-solid fa-xmark"></i> نعم، رفض';
+            confirmBtn.href = href;
+
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        document.getElementById('modalCancel').addEventListener('click', function () {
+            document.getElementById('confirmModal').classList.remove('active');
+        });
+
+        document.getElementById('confirmModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
