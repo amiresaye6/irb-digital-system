@@ -1,8 +1,8 @@
 <?php
- require_once __DIR__ . '/../../includes/sidebar.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once __DIR__ . '/../../includes/sidebar.php';
 $errors = $_SESSION['form_errors'] ?? [];
 $data = $_SESSION['form_data'] ?? [];
 ?>
@@ -54,7 +54,6 @@ $data = $_SESSION['form_data'] ?? [];
             margin-top: 8px;
             font-size: 1.1rem;
         }
-        /* --------------------------- */
 
         .form-card {
             background: var(--bg-surface);
@@ -125,6 +124,24 @@ $data = $_SESSION['form_data'] ?? [];
             padding: 15px;
             border: 1px dashed var(--border-dark);
             border-radius: var(--radius-md);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .upload-status {
+            display: none;
+            color: var(--success-base);
+            font-size: 0.85rem;
+            margin-top: 2px;
+            font-weight: 700;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .upload-status.active {
+            display: flex;
         }
 
         .btn-submit {
@@ -182,7 +199,8 @@ $data = $_SESSION['form_data'] ?? [];
 <div class="form-card">
     <div class="form-header">
         <h2>نموذج تقديم مقترح بحثي</h2>
-        <p style="color: var(--text-muted);">يرجى ملء كافة البيانات ورفع الملفات المطلوبة بعناية.</p>
+        <h4>يرجى ملء كافة البيانات ورفع الملفات المطلوبة بعناية.</h4>
+        <h4>يجب ان تكون كل الملفات المرفوعة فى صيغة pdf او word</h4>
     </div>
 
     <?php if (!empty($errors)): ?>
@@ -199,57 +217,65 @@ $data = $_SESSION['form_data'] ?? [];
         <div class="grid-container">
             <div class="field-group full-width">
                 <label>عنوان البحث</label>
-                <input type="text" name="title" value="<?= htmlspecialchars($data['title'] ?? '') ?>" minlength="3" required placeholder="اكتب هنا عنوان البحث الكامل">
+                <input type="text" name="title" value="<?= htmlspecialchars($data['title'] ?? '') ?>" minlength="3" maxlength="80" required placeholder="اكتب هنا عنوان البحث الكامل">
             </div>
 
             <div class="field-group">
                 <label>اسم الباحث الرئيسي</label>
-                <input type="text" name="principal_investigator" value="<?= htmlspecialchars($data['principal_investigator'] ?? '') ?>" minlength="3" required>
+                <input type="text" name="principal_investigator" value="<?= htmlspecialchars($data['principal_investigator'] ?? '') ?>" minlength="3" maxlength="80" required>
             </div>
 
             <div class="field-group">
                 <label>المشاركون في البحث (مفصولين بفاصلة)</label>
                 <input type="text" name="co_investigators" placeholder="مثال : محمد ابراهيم , احمد اسامة  " value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>" minlength="3" required>
             </div>
-
+            
             <div class="file-input-wrapper">
                 <label>ملف البحث (Research)</label>
                 <input type="file" required name="research">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>نموذج البروتوكول</label>
                 <input type="file" required name="protocol">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>إقرار تضارب المصالح</label>
                 <input type="file" required name="conflict_of_interest">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>قائمة مراجعة IRB</label>
                 <input type="file" required name="irb_checklist">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>موافقة الباحث الرئيسي</label>
                 <input type="file" required name="pi_consent">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>موافقة المريض</label>
                 <input type="file" required name="patient_consent">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>موافقة الصور والخزعات</label>
                 <input type="file" required name="photos_biopsies_consent">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
 
             <div class="file-input-wrapper">
                 <label>طلب مراجعة البروتوكول</label>
                 <input type="file" required name="protocol_review_app">
+                <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
             </div>
         </div>
 
@@ -259,6 +285,8 @@ $data = $_SESSION['form_data'] ?? [];
 <script>
 document.querySelectorAll('input[type="file"]').forEach(input => {
     input.addEventListener('change', function() {
+        const statusIndicator = this.parentElement.querySelector('.upload-status');
+        
         if (this.files[0]) {
             const fileSize = this.files[0].size; 
             const maxSize = 4 * 1024 * 1024; 
@@ -266,7 +294,12 @@ document.querySelectorAll('input[type="file"]').forEach(input => {
             if (fileSize > maxSize) {
                 alert("خطأ: حجم ملف (" + this.previousElementSibling.innerText + ") كبير جداً. الحد الأقصى المسموح به هو 4 ميجابايت فقط.");
                 this.value = ""; 
+                statusIndicator.classList.remove('active'); 
+            } else {
+                statusIndicator.classList.add('active'); 
             }
+        } else {
+            statusIndicator.classList.remove('active'); 
         }
     });
 });
