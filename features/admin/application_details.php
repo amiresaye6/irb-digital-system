@@ -721,10 +721,18 @@ $success_msg = $_GET['success'] ?? null;
         <!-- Actions -->
         <div class="card">
             <div class="action-area">
-                <a href="" class="btn-secondary"><i class="fa-solid "></i> قبول</a>
-                <a href="" class="btn-secondary"><i class="fa-solid "></i> رفض</a>
-                <a href="" class="btn-secondary"><i class="fa-solid "></i> طلب تعديل</a>
-            </div>
+    <a href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&case=accept" class="btn-secondary">
+        <i class="fa-solid fa-check"></i> قبول
+    </a>
+
+    <a href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&case=reject" class="btn-secondary">
+        <i class="fa-solid fa-xmark"></i> رفض
+    </a>
+
+    <a href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&case=modify" class="btn-secondary">
+        <i class="fa-solid fa-pen"></i> طلب تعديل
+    </a>
+</div>
             
         </div>
     </div>
