@@ -1,293 +1,181 @@
 <?php
-require_once "../../init.php";
-require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin');
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+require_once __DIR__ . '/../../init.php';
+require_once __DIR__ . '/../../includes/irb_helpers.php';
 
-$dbobj = new Database();
+Auth::checkRole(['admin']);
+$db = new Database();
 
-$result       = $dbobj->getconn()->query("SELECT * FROM users WHERE role = 'student' AND is_active = 0 ORDER BY created_at DESC");
-$pendingUsers = $result->fetch_all(MYSQLI_ASSOC);
+$sql = "SELECT id, full_name, email, role, is_active, national_id, phone_number, created_at FROM users ORDER BY created_at DESC";
+$allUsers = $db->getconn()->query($sql)->fetch_all(MYSQLI_ASSOC);
 
-$allUsers     = $dbobj->selectAll("users");
-$totalUsers   = count($allUsers);
-$pendingCount = count($pendingUsers);
-$activeCount  = $totalUsers - $pendingCount;
+$pendingUsers = [];
+$activeUsers = [];
+
+$roleTranslations = [
+    'admin'          => 'مدير نظام',
+    'manager'        => 'مدير عام',
+    'reviewer'       => 'مُراجع',
+    'sample_officer' => 'مسؤول عينات',
+    'student'        => 'باحث / طالب'
+];
+
+foreach ($allUsers as $u) {
+    if ((int)$u['is_active'] === 0) {
+        $pendingUsers[] = $u;
+    } else {
+        $activeUsers[] = $u;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الأدمن | IRB</title>
+    <title>إدارة المستخدمين | IRB System</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/irb-digital-system/includes/style.css">
     <link rel="stylesheet" href="/irb-digital-system/assets/css/global.css">
+    
     <style>
-        /* الحل الجذري لمشكلة تداخل السايد بار */
-        .dashboard-content {
-            margin-right: 260px !important; /* نفس عرض السايد بار الموجود في نظامك */
-            padding: 30px;
-            transition: all 0.3s ease;
-            min-height: 100vh;
+        body { background:var(--bg-page); }
+        .content { margin-right:260px; padding:20px 24px; display:flex; flex-direction:column; align-items:center; }
+        .content > * { width:100%; max-width:1120px; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-title { color:var(--primary-base); font-weight:800; font-size:1.6rem; margin:0; }
+
+        /* ستايل السيرش المظبوط */
+        .toolbar-card { 
+            background: linear-gradient(180deg,rgba(44,62,80,0.04) 0%,#fff 100%); 
+            border: 1px solid rgba(189,195,199,0.6); 
+            border-radius: var(--radius-lg); 
+            padding: 15px; margin-bottom: 20px;
+            display: flex; gap: 15px; align-items: flex-end;
+        }
+        .search-wrapper { position: relative; flex: 1; }
+        .search-input { 
+            width:100%; border:1.5px solid rgba(189,195,199,0.9); border-radius:10px; 
+            padding:10px 40px 10px 12px; font-family:inherit; font-weight:600;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237f8c8d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat right 12px center;
         }
 
-        /* تنسيق كروت الإحصائيات */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+        /* جداول منفصلة */
+        .section-title { font-weight: 800; color: var(--primary-base); margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
+        .data-card { background:var(--bg-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); border:1px solid var(--border-light); padding: 20px; margin-bottom: 20px; }
+        
+        .data-table { width:100%; border-collapse:collapse; text-align:right; }
+        .data-table th { padding:12px; background:var(--primary-base); color:white; font-weight:700; font-size:0.85rem; }
+        .data-table td { padding:12px; border-bottom:1px solid var(--border-light); font-size: 0.9rem; }
 
-        .stat-card {
-            background: var(--bg-surface);
-            border-radius: var(--radius-lg);
-            border: 0.5px solid var(--border-light);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: border var(--transition-smooth);
-        }
+        /* أزرار الأكشن */
+        .btn-action { padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn-approve { background: #27ae60; color: white !important; border: none; }
+        .btn-reject { background: #e74c3c; color: white !important; border: none; margin-right: 5px; }
+        .btn-action:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        .stat-card:hover { border-color: var(--accent-base); }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 22px;
-        }
-
-        .stat-icon.teal  { background: var(--accent-light);  color: var(--accent-dark); }
-        .stat-icon.amber { background: var(--warning-light); color: var(--warning-base); }
-        .stat-icon.navy  { background: var(--primary-light); color: var(--primary-base); }
-
-        .stat-num   { font-size: 28px; font-weight: 800; color: var(--primary-base); line-height: 1; }
-        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-
-        /* تنسيق الجدول والطلبات */
-        .section-label {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--accent-base);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .section-label::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border-light);
-        }
-
-        .table-card {
-            background: var(--bg-surface);
-            border-radius: var(--radius-lg);
-            border: 0.5px solid var(--border-light);
-            overflow-x: auto; /* للسماح بالتمرير في الشاشات الصغيرة */
-        }
-
-        .table-head {
-            display: grid;
-            grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1fr 1.8fr;
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid var(--border-light);
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-muted);
-            min-width: 800px; /* يضمن عدم تداخل الأعمدة */
-        }
-
-        .table-row {
-            display: grid;
-            grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1fr 1.8fr;
-            padding: 15px 20px;
-            border-bottom: 1px solid #ecf0f1;
-            align-items: center;
-            font-size: 14px;
-            transition: background 0.2s;
-            min-width: 800px;
-        }
-
-        .table-row:hover { background: #fbfcfc; }
-
-        .row-name  { font-weight: 700; color: var(--primary-base); }
-        .row-email { color: var(--text-muted); font-size: 12px; }
-
-        .nat-id {
-            font-family: monospace;
-            background: #f1f3f4;
-            padding: 4px 8px;
-            border-radius: 5px;
-            color: var(--primary-base);
-        }
-
-        .id-thumb {
-            width: 45px;
-            height: 30px;
-            border-radius: 4px;
-            object-fit: cover;
-            border: 1px solid var(--border-light);
-            cursor: pointer;
-            margin-left: 5px;
-        }
-
-        /* الأزرار */
-        .btn-activate {
-            background: var(--accent-base);
-            color: white; border: none;
-            padding: 7px 15px; border-radius: 6px;
-            cursor: pointer; font-family: 'Cairo';
-            font-size: 12px;
-        }
-
-        .btn-reject {
-            background: transparent;
-            border: 1px solid var(--alert-base);
-            color: var(--alert-base);
-            padding: 7px 15px; border-radius: 6px;
-            cursor: pointer; font-family: 'Cairo';
-            font-size: 12px;
-        }
-
-        /* المودال */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6); z-index: 2000;
-            align-items: center; justify-content: center;
-        }
-        .modal-overlay.open { display: flex; }
-        .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 600px; }
-        .modal-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .modal-img-card img { width: 100%; height: 200px; object-fit: contain; background: #eee; }
-
-        /* استجابة الموبايل */
-        @media (max-width: 992px) {
-            .dashboard-content { margin-right: 0 !important; padding: 15px; }
-        }
+        .contact-info small { display: block; color: var(--text-muted); font-size: 0.75rem; }
+        
+        @media(max-width:992px) { .content{margin-right:0;} }
     </style>
 </head>
 <body>
-
-<?php require_once "../../includes/header.php"; ?>
-
-<div class="dashboard-content">
-    <div class="stats">
-        <div class="stat-card">
-            <div class="stat-icon navy"><i class="fas fa-users"></i></div>
-            <div>
-                <p class="stat-num"><?php echo $totalUsers; ?></p>
-                <p class="stat-label">إجمالي المستخدمين</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon amber"><i class="fas fa-user-clock"></i></div>
-            <div>
-                <p class="stat-num"><?php echo $pendingCount; ?></p>
-                <p class="stat-label">في انتظار التفعيل</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon teal"><i class="fas fa-user-check"></i></div>
-            <div>
-                <p class="stat-num"><?php echo $activeCount; ?></p>
-                <p class="stat-label">حسابات مفعلة</p>
-            </div>
-        </div>
-    </div>
-
-    <p class="section-label">طلبات تفعيل الحسابات الجديدة</p>
-
-    <div class="table-card">
-        <?php if(empty($pendingUsers)): ?>
-            <div style="text-align:center; padding: 50px; color: #95a5a6;">
-                <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
-                <p>لا توجد طلبات معلقة حالياً</p>
-            </div>
-        <?php else: ?>
-            <div class="table-head">
-                <span>الاسم الشخصي</span>
-                <span>البريد الإلكتروني</span>
-                <span>رقم البطاقة</span>
-                <span>صور الهوية</span>
-                <span>تاريخ التسجيل</span>
-                <span>الإجراءات</span>
-            </div>
-
-            <?php foreach($pendingUsers as $user): ?>
-                <?php
-                     $front = "/irb-digital-system/" . ltrim(str_replace('\\', '/', $user['id_front_url']), '/');
+    <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
     
-                    $back  = "/irb-digital-system/" . ltrim(str_replace('\\', '/', $user['id_back_url']),  '/');
-                ?>
-                <div class="table-row">
-                    <div>
-                        <p class="row-name"><?php echo htmlspecialchars($user['full_name']); ?></p>
-                    </div>
-                    <div class="row-email"><?php echo htmlspecialchars($user['email']); ?></div>
-                    <div><span class="nat-id"><?php echo htmlspecialchars($user['national_id']); ?></span></div>
-                    <div class="id-thumbs">
-                        <img src="<?php echo $front; ?>" class="id-thumb" onclick="openModal('<?php echo $front; ?>','<?php echo $back; ?>','<?php echo addslashes($user['full_name']); ?>')">
-                        <img src="<?php echo $back; ?>" class="id-thumb" onclick="openModal('<?php echo $front; ?>','<?php echo $back; ?>','<?php echo addslashes($user['full_name']); ?>')">
-                    </div>
-                    <div style="font-size:12px; color:#7f8c8d;"><?php echo date('Y-m-d', strtotime($user['created_at'])); ?></div>
-                    <div class="row-actions">
-                        <form action="activate_user.php" method="POST" style="display:inline">
-                            <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                            <button type="submit" class="btn-activate" onclick="return confirm('تفعيل حساب المستخدم؟')">تفعيل</button>
-                        </form>
-                        <form action="reject_user.php" method="POST" style="display:inline">
-                            <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                            <button type="submit" class="btn-reject" onclick="return confirm('رفض الحساب؟')">رفض</button>
-                        </form>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-</div>
+    <div class="content">
+        <div class="page-header">
+            <h2 class="page-title"><i class="fa-solid fa-users-gear"></i> إدارة المستخدمين</h2>
+            <a href="add_user.php" class="btn-add-user" style="background:var(--accent-base); color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-weight:800;">إضافة مستخدم</a>
+        </div>
 
-<div class="modal-overlay" id="idModal">
-    <div class="modal-box">
-        <p style="font-weight:bold; border-bottom:1px solid #eee; padding-bottom:10px;" id="modalTitle">معاينة الهوية</p>
-        <div class="modal-imgs">
-            <div class="modal-img-card">
-                <p style="font-size:11px; color:#7f8c8d;">وجه البطاقة</p>
-                <img id="modalFront" src="">
+        <div class="toolbar-card">
+            <div class="search-wrapper">
+                <label style="display:block; font-weight:800; font-size:0.8rem; margin-bottom:5px;">البحث العام</label>
+                <input type="text" id="mainSearch" class="search-input" placeholder="بحث بالاسم، البريد، الرقم القومي...">
             </div>
-            <div class="modal-img-card">
-                <p style="font-size:11px; color:#7f8c8d;">ظهر البطاقة</p>
-                <img id="modalBack" src="">
+            <div style="width: 200px;">
+                <label style="display:block; font-weight:800; font-size:0.8rem; margin-bottom:5px;">نوع الحساب</label>
+                <select id="roleFilter" class="search-input" style="background-image:none; padding-right:12px;">
+                    <option value="all">الكل</option>
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
+                </select>
             </div>
         </div>
-        <button style="margin-top:20px; width:100%; padding:10px; cursor:pointer;" onclick="closeModal()">إغلاق</button>
+
+        <h3 class="section-title" style="color: #f39c12;"><i class="fa-solid fa-clock-rotate-left"></i> طلبات بانتظار التفعيل (<?= count($pendingUsers) ?>)</h3>
+        <div class="data-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>بيانات التواصل</th>
+                        <th>الصلاحية</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if(empty($pendingUsers)): ?>
+                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد طلبات معلقة</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($pendingUsers as $u): ?>
+                        <tr>
+                            <td><strong><?= htmlspecialchars($u['full_name']) ?></strong><br><small><?= htmlspecialchars($u['email']) ?></small></td>
+                            <td class="contact-info">
+                                <small>ID: <?= $u['national_id'] ?></small>
+                                <small>Tel: <?= $u['phone_number'] ?></small>
+                            </td>
+                            <td><span class="phase-badge"><?= $roleTranslations[$u['role']] ?? $u['role'] ?></span></td>
+                            <td>
+                                <a href="activate_user.php?id=<?= $u['id'] ?>" class="btn-action btn-approve"><i class="fa-solid fa-check"></i> تفعيل</a>
+                                <a href="reject_user.php?id=<?= $u['id'] ?>" class="btn-action btn-reject" onclick="return confirm('هل أنت متأكد من الرفض؟')"><i class="fa-solid fa-xmark"></i> رفض</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="section-title" style="color: #27ae60;"><i class="fa-solid fa-user-check"></i> المستخدمين النشطين</h3>
+        <div class="data-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>بيانات التواصل</th>
+                        <th>الصلاحية</th>
+                        <th>تاريخ الانضمام</th>
+                    </tr>
+                </thead>
+                <tbody id="activeUsersTable">
+                    <?php foreach ($activeUsers as $u): ?>
+                    <tr data-search="<?= strtolower($u['full_name'] . ' ' . $u['email']) ?>" data-role="<?= $u['role'] ?>">
+                        <td><strong><?= htmlspecialchars($u['full_name']) ?></strong><br><small><?= htmlspecialchars($u['email']) ?></small></td>
+                        <td class="contact-info">
+                            <small>ID: <?= $u['national_id'] ?></small>
+                            <small>Tel: <?= $u['phone_number'] ?></small>
+                        </td>
+                        <td><span class="phase-badge"><?= $roleTranslations[$u['role']] ?? $u['role'] ?></span></td>
+                        <td><?= date('Y/m/d', strtotime($u['created_at'])) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 
-<?php require_once "../../includes/footer.php"; ?>
-
-<script>
-function openModal(front, back, name) {
-    document.getElementById('modalFront').src = front;
-    document.getElementById('modalBack').src  = back;
-    document.getElementById('modalTitle').innerText = 'هوية: ' + name;
-    document.getElementById('idModal').classList.add('open');
-}
-function closeModal() {
-    document.getElementById('idModal').classList.remove('open');
-}
-window.onclick = function(event) {
-    if (event.target == document.getElementById('idModal')) closeModal();
-}
-</script>
+    <script>
+        document.getElementById('mainSearch').addEventListener('input', function(e) {
+            let term = e.target.value.toLowerCase();
+            document.querySelectorAll('#activeUsersTable tr').forEach(tr => {
+                tr.style.display = tr.getAttribute('data-search').includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+     <?php include __DIR__ . '/../../includes/footer.php'; ?>
 </body>
 </html>

@@ -18,6 +18,7 @@ class Database
         $this->pass = $env['DB_PASS'];
         $this->db = $env['DB_NAME'];
         $this->port = $env['DB_PORT'];
+           
 
         // Connect using the secure variables
         $this->conn = new mysqli($this->host, $this->user, $this->pass, $this->db, $this->port);
