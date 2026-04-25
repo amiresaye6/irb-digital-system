@@ -156,13 +156,13 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة المدير</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/final_approvals.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/manager/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/final_approvals.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-stamp"></i>
                     <span>الاعتمادات النهائية</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/system_reports.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/system_reports.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/manager/system_reportsAndStatistics.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/system_reportsAndStatistics.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>التقارير والإحصائيات</span>
                 </a>
