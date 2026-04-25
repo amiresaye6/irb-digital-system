@@ -23,14 +23,14 @@ function irb_sidebar_is_active($paths)
     </div>
 
     <ul class="sidebar-menu">
-        <!-- Universal Links -->
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
         <li class="menu-item">
-            <a href="/irb-digital-system/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/dashboard.php']) ? ' is-active' : '' ?>">
+            <a href="/irb-digital-system/features/manager/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard.php']) ? ' is-active' : '' ?>">
                 <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
             </a>
         </li>
-
+        <?php endif; ?>
         <!-- Student Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
             <li class="menu-category">
@@ -139,7 +139,7 @@ function irb_sidebar_is_active($paths)
             <i class="fa-solid fa-user-circle"></i>
             <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(substr($_SESSION['full_name'], 0, 20)) : 'المستخدم' ?></span>
         </div>
-        <a href="/irb-digital-system/logout.php" class="logout-btn">
+        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn" title="تسجيل الخروج">
             <i class="fa-solid fa-right-from-bracket"></i>
         </a>
     </div>
