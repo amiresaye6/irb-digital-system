@@ -51,4 +51,5 @@ if (session_status() === PHP_SESSION_NONE) {
             }
             ?>
 
-            <main class="content-area"></main>
+            <main class="content-area">
+
