@@ -68,7 +68,7 @@ function irb_sidebar_is_active($paths)
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/admin_dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/admin_dashboard.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-gauge"></i>
                     <span>لوحة معلومات الإدارة</span>
                 </a>
