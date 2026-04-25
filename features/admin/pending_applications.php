@@ -1,7 +1,8 @@
 
 <?php
  
- 
+require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('admin'); 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
  header("Location: /irb-digital-system/login.php"); exit;

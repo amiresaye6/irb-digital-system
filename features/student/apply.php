@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('student'); 
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
