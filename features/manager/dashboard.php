@@ -4,7 +4,7 @@ require_once '../../includes/irb_helpers.php';
 $db = new Database();
 $conn = $db->getconn();
 
-$sql = "SELECT 
+        $sql = "SELECT 
             r.id as review_id,
             a.serial_number, 
             a.title, 
@@ -15,13 +15,9 @@ $sql = "SELECT
         FROM reviews r
         JOIN applications a ON r.application_id = a.id
         JOIN users u ON a.student_id = u.id
-        WHERE r.id IN (
-            SELECT MAX(id) 
-            FROM reviews 
-            GROUP BY application_id
-        )
+        WHERE a.current_stage = 'approved_by_reviewer' 
+        AND r.decision = 'approved'
         ORDER BY a.created_at ASC";
-//r.decision = 'approved' 
 $result = $conn->query($sql);
 
 include '../../includes/header.php';
@@ -143,9 +139,6 @@ include '../../includes/header.php';
                 <h2 style="margin: 0; font-size: 20px;">قائمة القرارات النهائية</h2>
                 <p style="color: #888; font-size: 14px; margin: 5px 0 0;">طلبات تنتظر الاعتماد النهائي للمدير</p>
             </div>
-            <button style="background: #d2f0e3; color: #0d9e4a; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
-                + تصدير التقرير
-            </button>
         </div>
 
         <table class="irb-table" style="width: 100%; border-collapse: collapse;">
@@ -202,6 +195,11 @@ include '../../includes/header.php';
                         </tr>
                 <?php
                     endwhile;
+                }
+                else {
+                    
+                    echo '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">سيظهر هنا أي بحث تمت مراجعته من قبل اللجنة ويحتاج لتوقيعك النهائي</td></tr>';
+                    echo '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #888;">لا توجد طلبات بانتظار الاعتماد حالياً</td></tr>';
                 }
                 ?>
             </tbody>
