@@ -190,6 +190,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة المدير</span>
             </li>
             <li class="menu-item">
+                <a href="/irb-digital-system/features/manager/dashboard2.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard2.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-stamp"></i>
+                    <span>الأبحاث الجاهزة للأعتماد النهائي</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/features/manager/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/final_approvals.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-stamp"></i>
                     <span>الاعتمادات النهائية</span>

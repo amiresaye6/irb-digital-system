@@ -1,9 +1,13 @@
-
+<?php
 require_once '../../classes/Database.php';
 require_once '../../includes/irb_helpers.php';
+require_once '../../init.php';
+
+require_once __DIR__ . "/../../classes/Auth.php"; 
+
+Auth::checkRole(['manager']);
 $db = new Database();
 $conn = $db->getconn();
-
         $sql = "SELECT 
             r.id as review_id,
             a.serial_number, 
@@ -18,9 +22,9 @@ $conn = $db->getconn();
         WHERE a.current_stage = 'approved_by_reviewer' 
         AND r.decision = 'approved'
         ORDER BY a.created_at ASC";
-$result = $conn->query($sql);
-
-include '../../includes/header.php';
+        
+        $result = $conn->query($sql);
+        include '../../includes/header.php';
 ?>
 
 <style>
