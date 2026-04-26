@@ -70,19 +70,6 @@ class Applications {
         return $docs;
     }
 
-    public function getCertificates($user_id) {
-        $sql = "SELECT * FROM certificates WHERE user_id = ? ORDER BY uploaded_at DESC";//application_id , manager_id , certificate_number , issued_to_name , pdf_url
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $docs = [];
-        while ($row = $result->fetch_assoc()) {
-            $docs[] = $row;
-        }
-        return $docs;
-    }
-
     public function getReviewerFeedback($application_id) {
         $sql = "SELECT r.id as review_id, r.decision, r.reviewed_at, rc.comment, rc.created_at as comment_date
                 FROM reviews r 
