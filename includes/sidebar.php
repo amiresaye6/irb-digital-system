@@ -97,12 +97,6 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة الإدارة</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-gauge"></i>
-                    <span>لوحة معلومات الإدارة</span>
-                </a>
-            </li>
-            <li class="menu-item">
                 <a href="/irb-digital-system/features/admin/manage_users.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/manage_users.php', '/irb-digital-system/features/admin/add_user.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-users-gear"></i>
                     <span>إدارة المستخدمين</span>
@@ -124,6 +118,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-money-check-dollar"></i>
                     <span>إدارة المدفوعات</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/system_logs.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/system_logs.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>سجل النظام</span>
                 </a>
             </li>
         <?php endif; ?>
