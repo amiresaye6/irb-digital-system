@@ -124,6 +124,10 @@ CREATE TABLE certificates (
     FOREIGN KEY (manager_id) REFERENCES users(id)
 );
 
+ALTER TABLE certificates 
+ADD COLUMN student_id INT AFTER application_id,
+ADD FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE;
+
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -349,9 +353,9 @@ INSERT INTO review_comments (review_id, comment, created_at) VALUES
 (17, 'موافق. لا توجد ملاحظات.', '2026-04-24 09:30:00');
 
 -- 9. Seed Certificates
-INSERT INTO certificates (application_id, manager_id, certificate_number, issued_to_name, pdf_url, issued_at) VALUES 
-(1, 11, 'CERT-2026-10045', 'د. عمر الفاروق', 'uploads/seed/dummy_certificate.pdf', '2026-03-15 10:00:00'),
-(8, 11, 'CERT-2026-10046', 'د. سلمى رضا', 'uploads/seed/dummy_certificate.pdf', '2026-02-01 10:00:00');
+INSERT INTO certificates (application_id, student_id, manager_id, certificate_number, issued_to_name, pdf_url, issued_at) VALUES 
+(1, 1, 11, 'CERT-2026-10045', 'د. عمر الفاروق', 'uploads/seed/dummy_certificate.pdf', '2026-03-15 10:00:00'),
+(8, 13, 11, 'CERT-2026-10046', 'د. سلمى رضا', 'uploads/seed/dummy_certificate.pdf', '2026-02-01 10:00:00');
 
 -- 10. Seed Logs
 INSERT INTO logs (application_id, user_id, action, type, created_at) VALUES 
