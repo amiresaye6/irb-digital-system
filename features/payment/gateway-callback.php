@@ -103,6 +103,19 @@ if ($merchant_order_id) {
                     'message' => $notificationMsg,
                     'channel' => 'email'
                 ]);
+                
+
+                if ($nextStage === 'awaiting_sample_calc') {
+                    require_once __DIR__ . '/../../classes/Applications.php';
+                    $samp_sql = "SELECT id FROM users WHERE role = 'sample_officer'";
+                    $samp_res = $db->conn->query($samp_sql);
+                    if ($samp_res && $samp_res->num_rows > 0) {
+                        $samplerMsg = "تم سداد رسوم التقديم المبدئية للبحث رقم ({$serialNumber}) ويحتاج الآن لحساب العينة.";
+                        while($samp = $samp_res->fetch_assoc()) {
+                            Applications::createNotification($db->conn, $samp['id'], $application_id, $samplerMsg);
+                        }
+                    }
+                }
             }
         }
     }

@@ -388,8 +388,8 @@ $applications = $appObj->getApplicationsByStatus('pending_admin');
 <body>
     <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
     <div class="content">
-        <h2 class="page-title"><i class="fa-solid fa-folder-open"></i> أبحاثي</h2>
-        <p class="page-subtitle">متابعة جميع الأبحاث المقدمة وحالاتها الحالية</p>
+        <h2 class="page-title"><i class="fa-solid fa-folder-open"></i> أبحاث قيد المراجعة</h2>
+        <p class="page-subtitle">متابعة الأبحاث المقدمة</p>
  
         <div class="toolbar-card">
             <div class="toolbar-meta" style="grid-column:1/-1;">
