@@ -1,7 +1,13 @@
 <?php
 session_start();
-require_once "../../init.php";
-Auth::checkRole('student');
+require_once "../init.php";
+require_once __DIR__ . "/../classes/Auth.php";
+
+// All non-admin users can update their profile
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] === 'admin') {
+    header('Location: /irb-digital-system/features/auth/login.php');
+    exit;
+}
 
 $user_id      = $_SESSION['user_id'];
 $full_name    = trim($_POST['full_name']    ?? '');
@@ -24,7 +30,7 @@ if(!empty($errors)) {
     exit();
 }
 
-$dbobj= new Database();
+$dbobj = new Database();
 
 $data = [
     "full_name"    => $full_name,
@@ -39,6 +45,7 @@ if($dbobj->updateById("users", $user_id, $data)) {
         "action"  => "تحديث البيانات الشخصية"
     ]);
 
+    // Update the session full_name as well so the sidebar updates
     $_SESSION['full_name'] = $full_name;
 
     $_SESSION['success'] = "تم تحديث البيانات بنجاح";

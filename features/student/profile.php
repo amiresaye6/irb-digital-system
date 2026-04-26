@@ -268,6 +268,11 @@ unset($_SESSION['errors']);
         
         <form action="update_profile.php" method="POST">
             <div class="modal-field">
+                <label>الاسم الكامل</label>
+                <input type="text" name="full_name" value="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>" required>
+            </div>
+
+            <div class="modal-field">
                 <label>رقم الهاتف</label>
                 <input type="text" name="phone_number" value="<?php echo htmlspecialchars($user['phone_number'] ?? ''); ?>" required>
             </div>
@@ -283,7 +288,7 @@ unset($_SESSION['errors']);
             </div>
 
             <div class="alert alert-light border-0" style="font-size: 12px; color: #64748b; background: #f8fafc;">
-                <i class="fas fa-info-circle me-1"></i> لا يمكن تعديل الاسم أو الرقم القومي من هنا.
+                <i class="fas fa-info-circle me-1"></i> لا يمكن تعديل الرقم القومي من هنا للحفاظ على الخصوصية.
             </div>
 
             <button type="submit" class="btn-save">حفظ التغييرات</button>
