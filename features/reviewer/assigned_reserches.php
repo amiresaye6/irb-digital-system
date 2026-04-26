@@ -3,10 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'reviewer') {
-    header("Location: /irb-digital-system/login.php");
-    exit;
-}
+require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('reviewer');
 
 require_once __DIR__ . '/../../classes/Reviews.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';

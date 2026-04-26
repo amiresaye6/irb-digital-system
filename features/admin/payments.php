@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . '/../../includes/pagination.php';
-
+require_once __DIR__ . "/../../classes/Auth.php";
 Auth::checkRole(['admin', 'manager']);
 
 $db = new Database();

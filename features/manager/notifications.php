@@ -1,10 +1,9 @@
 <?php
 require_once '../../init.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'manager') {
-    header('Location: /irb-digital-system/features/auth/login.php');
-    exit;
-}
+require_once __DIR__ . "/../../classes/Auth.php";
+
+Auth::checkRole(['manager']);
 
 require_once __DIR__ . '/../../classes/Applications.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';

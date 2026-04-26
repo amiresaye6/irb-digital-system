@@ -1,11 +1,8 @@
 <?php
 require_once '../../init.php';
 
-// Ensure user is admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: /irb-digital-system/features/auth/login.php');
-    exit;
-}
+require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('admin');
 
 $dbobj = new Database();
 $conn = $dbobj->getconn();
@@ -591,12 +588,18 @@ $certStats = $dashboard->getCertificateStats();
                 </div>
 
                 <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title"><i class="fa-solid fa-bolt"></i> سجل النشاطات الحديثة</h3>
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="chart-title" style="margin:0;"><i class="fa-solid fa-bolt"></i> سجل النشاطات الحديثة</h3>
+                        <a href="/irb-digital-system/features/admin/system_logs.php" style="font-size:0.85rem; font-weight:700; color:var(--primary-base); text-decoration:none; display:flex; align-items:center; gap:5px;">
+                            عرض الكل <i class="fa-solid fa-arrow-left"></i>
+                        </a>
                     </div>
                     <div class="chart-body" style="min-height: auto;">
                         <ul class="feed-list">
-                            <?php foreach ($recentLogs as $log): ?>
+                            <?php 
+                            $displayedLogs = array_slice($recentLogs, 0, 5);
+                            foreach ($displayedLogs as $log): 
+                            ?>
                                 <li class="feed-item">
                                     <div class="feed-icon"><i class="fa-solid fa-info"></i></div>
                                     <div class="feed-content">

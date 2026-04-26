@@ -1,8 +1,7 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
-    header("Location: /irb-digital-system/login.php"); exit;
-}
+require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('student'); 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: student_researches.php"); exit;
 }

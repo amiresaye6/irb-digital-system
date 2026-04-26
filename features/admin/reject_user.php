@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "../../init.php";
+require_once __DIR__ . "/../../classes/Auth.php";
 Auth::checkRole(['admin']);
 
 $user_id = $_GET['id'] ?? null;
@@ -11,7 +12,8 @@ if($user_id) {
 
     $dbobj->insert("logs", [
         "user_id" => $_SESSION['user_id'],
-        "action"  => "رفض وحذف حساب رقم " . $user_id
+        "action"  => "رفض وحذف حساب رقم " . $user_id,
+        "type"    => "registration"
     ]);
 }
 

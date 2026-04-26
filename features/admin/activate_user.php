@@ -23,7 +23,8 @@ if($user_id) {
 
         $dbobj->insert("logs", [
             "user_id" => $_SESSION['user_id'],
-            "action"  => "تفعيل حساب رقم " . $user_id . " وإنشاء رقم تسلسلي: " . $serial
+            "action"  => "تفعيل حساب رقم " . $user_id . " وإنشاء رقم تسلسلي: " . $serial,
+            "type"    => "registration"
         ]);
     }
 }

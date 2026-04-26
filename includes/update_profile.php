@@ -42,7 +42,8 @@ $data = [
 if($dbobj->updateById("users", $user_id, $data)) {
     $dbobj->insert("logs", [
         "user_id" => $user_id,
-        "action"  => "تحديث البيانات الشخصية"
+        "action"  => "تحديث البيانات الشخصية",
+        "type"    => "profile"
     ]);
 
     // Update the session full_name as well so the sidebar updates

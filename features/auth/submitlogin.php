@@ -20,7 +20,8 @@ if(!$user['is_active']) {
 Auth::login($user);
 $dbobj->insert("logs", [
     "user_id" => $user['id'],
-    "action"  => "تسجيل دخول من IP: " . $_SERVER['REMOTE_ADDR']
+    "action"  => "تسجيل دخول من IP: " . $_SERVER['REMOTE_ADDR'],
+    "type"    => "login"
 ]);
 
 switch($user['role']) {
@@ -34,7 +35,7 @@ switch($user['role']) {
         header("Location: ../../features/sample_officer/dashboard.php");
         break;
     case 'reviewer':
-        header("Location:../../features/reviewer/assigned_reserches.php");
+        header("Location:../../features/reviewer/dashboard.php");
         break;
     case 'manager':
         header("Location: ../../features/manager/dashboard.php");

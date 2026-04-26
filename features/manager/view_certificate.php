@@ -2,6 +2,10 @@
 require_once '../../classes/Database.php';
 session_start();
 
+require_once __DIR__ . "/../../classes/Auth.php";
+
+Auth::checkRole(['manager']);
+
 if (isset($_GET['app_id'])) {
     $app_id = $_GET['app_id'];
     $db = new Database();

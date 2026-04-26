@@ -72,7 +72,8 @@ $result = $dbobj->insert("users", $data);
 if($result) {
     $dbobj->insert("logs", [
         "user_id" => $_SESSION['user_id'],
-        "action"  => "إضافة مستخدم جديد: " . $full_name . " بصلاحية: " . $role
+        "action"  => "إضافة مستخدم جديد: " . $full_name . " بصلاحية: " . $role,
+        "type"    => "registration"
     ]);
 
     $_SESSION['success'] = "تم إنشاء حساب (" . $full_name . ") بنجاح.";

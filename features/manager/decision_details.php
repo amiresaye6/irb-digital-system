@@ -2,6 +2,9 @@
 require_once "../../includes/irb_helpers.php";
 include "../../includes/header.php";
 require_once '../../classes/Database.php';
+require_once __DIR__ . "/../../classes/Auth.php";
+
+Auth::checkRole(['manager']);
 
 $statusMap = [
     'approved' => [

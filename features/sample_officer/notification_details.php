@@ -1,10 +1,12 @@
 <?php
 require_once '../../init.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'sample_officer') {
-    header('Location: /irb-digital-system/features/auth/login.php');
-    exit;
-}
+require_once __DIR__ . "/../../classes/Auth.php";
+
+Auth::checkRole(['sample_officer']);
+
+
+
 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: notifications.php');

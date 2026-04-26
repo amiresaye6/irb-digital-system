@@ -19,7 +19,7 @@ if ($isLoggedIn && isset($_SESSION['role'])) {
             $dashboard_url = '/irb-digital-system/features/sample_officer/dashboard.php';
             break;
         case 'reviewer':
-            $dashboard_url = '/irb-digital-system/features/reviewer/assigned_reserches.php';
+            $dashboard_url = '/irb-digital-system/features/reviewer/dashboard.php';
             break;
         case 'manager':
             $dashboard_url = '/irb-digital-system/features/manager/dashboard.php';

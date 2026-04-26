@@ -5,7 +5,8 @@ if(isset($_SESSION['user_id'])) {
     $dbobj = new Database();
     $dbobj->insert("logs", [
         "user_id" => $_SESSION['user_id'],
-        "action"  => "تسجيل خروج"
+        "action"  => "تسجيل خروج",
+        "type"    => "login"
     ]);
 }
 Auth::logout();

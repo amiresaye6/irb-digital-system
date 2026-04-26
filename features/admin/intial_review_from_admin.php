@@ -1,11 +1,9 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
 require_once __DIR__ . "/../../classes/Auth.php";
 Auth::checkRole('admin'); 
 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
- header("Location: /irb-digital-system/login.php"); exit;
-}
  require_once __DIR__ . '/../../includes/sidebar.php';
 require_once "../../init.php";
 require_once __DIR__ . '/../../classes/Applications.php';
@@ -30,7 +28,8 @@ if($case == 'accept' && $app['current_stage']=='pending_admin'){
     $logs = [
         "application_id" => $app_id,
         "user_id" => $_SESSION['user_id'] ,
-        "action" => "تمت الموافقة المبدئية من الادمن"
+        "action" => "تمت الموافقة المبدئية من الادمن",
+        "type" => "status_change"
     ];
     $database->insert("logs",$logs);
 
@@ -54,7 +53,8 @@ if($case == 'accept' && $app['current_stage']=='pending_admin'){
     $logs = [
         "application_id" => $app_id,
         "user_id" => $_SESSION['user_id'],
-        "action" => "تم رفض البحث من الادمن"
+        "action" => "تم رفض البحث من الادمن",
+        "type" => "status_change"
     ];
     $database->insert("logs",$logs);
 

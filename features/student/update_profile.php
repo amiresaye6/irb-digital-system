@@ -36,7 +36,8 @@ $data = [
 if($dbobj->updateById("users", $user_id, $data)) {
     $dbobj->insert("logs", [
         "user_id" => $user_id,
-        "action"  => "تحديث البيانات الشخصية"
+        "action"  => "تحديث البيانات الشخصية",
+        "type"    => "profile"
     ]);
 
     $_SESSION['full_name'] = $full_name;

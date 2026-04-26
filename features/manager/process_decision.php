@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../../classes/Database.php';
+require_once __DIR__ . "/../../classes/Auth.php";
+
+Auth::checkRole(['manager']);
 
 if (isset($_GET['id']) && isset($_GET['action'])) {
     $review_id = $_GET['id'];

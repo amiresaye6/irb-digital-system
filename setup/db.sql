@@ -142,6 +142,7 @@ CREATE TABLE logs (
     application_id INT,
     user_id INT,
     action VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    type VARCHAR(50) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
@@ -182,10 +183,8 @@ BEGIN
         WHERE id = NEW.application_id AND current_stage = 'under_review';
     END IF;
     IF NEW.decision != OLD.decision THEN
-        INSERT INTO logs (application_id, user_id, action)
-        VALUES (
-            NEW.application_id, 
-            NEW.reviewer_id, 
+        INSERT INTO logs (application_id, user_id, action, type) 
+        VALUES (NEW.application_id, NEW.reviewer_id, 
             CONCAT('المراجع سجل قراره: ', 
                 CASE NEW.decision 
                     WHEN 'approved' THEN 'موافقة'
@@ -193,7 +192,8 @@ BEGIN
                     WHEN 'rejected' THEN 'مرفوض'
                     ELSE NEW.decision 
                 END
-            )
+            ),
+            'decision'
         );
     END IF;
 END//
@@ -203,8 +203,8 @@ AFTER UPDATE ON applications
 FOR EACH ROW
 BEGIN
     IF NEW.current_stage != OLD.current_stage THEN
-        INSERT INTO logs (application_id, user_id, action) 
-        VALUES (NEW.id, NULL, CONCAT('تحديث حالة البحث إلى: ', NEW.current_stage));
+        INSERT INTO logs (application_id, user_id, action, type) 
+        VALUES (NEW.id, NULL, CONCAT('تحديث حالة البحث إلى: ', NEW.current_stage), 'status_change');
     END IF;
 END//
 
@@ -212,8 +212,8 @@ CREATE TRIGGER after_documents_insert_log
 AFTER INSERT ON documents
 FOR EACH ROW
 BEGIN
-    INSERT INTO logs (application_id, user_id, action) 
-    VALUES (NEW.application_id, NULL, CONCAT('تم رفع مستند جديد: ', NEW.document_type));
+    INSERT INTO logs (application_id, user_id, action, type) 
+    VALUES (NEW.application_id, NULL, CONCAT('تم رفع مستند جديد: ', NEW.document_type), 'document');
 END//
 
 CREATE TRIGGER after_documents_update_log
@@ -221,8 +221,8 @@ AFTER UPDATE ON documents
 FOR EACH ROW
 BEGIN
     IF NEW.file_path != OLD.file_path THEN
-        INSERT INTO logs (application_id, user_id, action) 
-        VALUES (NEW.application_id, NULL, CONCAT('تم تحديث مستند: ', NEW.document_type));
+        INSERT INTO logs (application_id, user_id, action, type) 
+        VALUES (NEW.application_id, NULL, CONCAT('تم تحديث مستند: ', NEW.document_type), 'document');
     END IF;
 END//
 
@@ -354,15 +354,15 @@ INSERT INTO certificates (application_id, manager_id, certificate_number, issued
 (8, 11, 'CERT-2026-10046', 'د. سلمى رضا', 'uploads/seed/dummy_certificate.pdf', '2026-02-01 10:00:00');
 
 -- 10. Seed Logs
-INSERT INTO logs (application_id, user_id, action, created_at) VALUES 
-(1, 1, 'تم تقديم البحث بنجاح ورفع المستندات', '2026-03-01 10:00:00'),
-(1, 5, 'مراجعة أولية وتوليد رقم تسلسلي للملف', '2026-03-01 12:00:00'),
-(1, 6, 'تم حساب حجم العينة (150)', '2026-03-03 09:00:00'),
-(1, 11, 'اعتماد نهائي وإصدار شهادة IRB', '2026-03-15 10:00:00'),
-(4, 5, 'تحديث حالة البحث إلى مرفوض بناءً على تقرير المراجعة', '2026-02-28 13:00:00'),
-(8, 13, 'تم تقديم البحث بنجاح', '2026-01-15 10:30:00'),
-(8, 7, 'تم حساب حجم العينة (1000)', '2026-01-20 09:45:00'),
-(8, 11, 'اعتماد نهائي وإصدار شهادة IRB', '2026-02-01 10:00:00');
+INSERT INTO logs (application_id, user_id, action, type, created_at) VALUES 
+(1, 1, 'تم تقديم البحث بنجاح ورفع المستندات', 'submission', '2026-03-01 10:00:00'),
+(1, 5, 'مراجعة أولية وتوليد رقم تسلسلي للملف', 'assignment', '2026-03-01 12:00:00'),
+(1, 6, 'تم حساب حجم العينة (150)', 'status_change', '2026-03-03 09:00:00'),
+(1, 11, 'اعتماد نهائي وإصدار شهادة IRB', 'certificate', '2026-03-15 10:00:00'),
+(4, 5, 'تحديث حالة البحث إلى مرفوض بناءً على تقرير المراجعة', 'decision', '2026-02-28 13:00:00'),
+(8, 13, 'تم تقديم البحث بنجاح', 'submission', '2026-01-15 10:30:00'),
+(8, 7, 'تم حساب حجم العينة (1000)', 'status_change', '2026-01-20 09:45:00'),
+(8, 11, 'اعتماد نهائي وإصدار شهادة IRB', 'certificate', '2026-02-01 10:00:00');
 
 -- 11. Seed Notifications
 INSERT INTO notifications (user_id, application_id, message, channel, is_read, email_sent, created_at) VALUES 

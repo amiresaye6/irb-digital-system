@@ -131,7 +131,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $logs = [
         "application_id" => $last_id,
         "user_id" => $student_id,
-        "action" => "تم تقديم البحث بنجاح ورفع المستندات"
+        "action" => "تم تقديم البحث بنجاح ورفع المستندات",
+        "type" => "submission"
     ];
     $database->insert("logs",$logs);
 

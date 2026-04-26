@@ -1,6 +1,10 @@
 <?php
 require_once '../../classes/Database.php';
 
+require_once __DIR__ . "/../../classes/Auth.php";
+
+Auth::checkRole(['manager']);
+
 $db = new Database();
 $conn = $db->getconn();
 

@@ -1,10 +1,8 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'reviewer') {
-    header("Location: /irb-digital-system/login.php");
-    exit;
-}
+require_once __DIR__ . "/../../classes/Auth.php";
+Auth::checkRole('reviewer');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: assigned_reserches.php");
