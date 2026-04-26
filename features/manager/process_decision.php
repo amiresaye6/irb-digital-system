@@ -1,4 +1,5 @@
 <?php
+ob_start(); 
 session_start();
 require_once '../../classes/Database.php';
 require_once __DIR__ . "/../../classes/Auth.php";
@@ -6,60 +7,71 @@ require_once __DIR__ . "/../../classes/Auth.php";
 Auth::checkRole(['manager']);
 
 if (isset($_GET['id']) && isset($_GET['action'])) {
-    $review_id = $_GET['id'];
+    $review_id = intval($_GET['id']);
     $action = $_GET['action'];
     $db = new Database();
     $conn = $db->getconn();
 
-    $get_app = $conn->query("SELECT application_id FROM reviews WHERE id = $review_id");
-    $app_data = $get_app->fetch_assoc();
-    $application_id = $app_data['application_id'];
+    $query = "SELECT r.application_id, a.student_id, a.serial_number, u.full_name 
+                FROM reviews r 
+                JOIN applications a ON r.application_id = a.id 
+                JOIN users u ON a.student_id = u.id 
+                WHERE r.id = $review_id";
+    
+    $res = $conn->query($query);
+    $data = $res->fetch_assoc();
 
-
-    if ($action == 'approve') {
-        $sql = "UPDATE reviews SET decision = 'approved' WHERE id = $review_id";
-        $sql_app = "UPDATE applications SET current_stage = 'approved' WHERE id = $application_id";
-
-        $user_info = $conn->query("SELECT u.full_name FROM applications a JOIN users u ON a.student_id = u.id WHERE a.id = $application_id");
-        $user_data = $user_info->fetch_assoc();
-        $student_name = $user_data['full_name'];
-
-        $cert_num = "CERT-" . date('Y') . "-" . str_pad($application_id, 5, '0', STR_PAD_LEFT);
-        $manager_id = $_SESSION['user_id'] ?? 11;
-        $sql_cert = "INSERT INTO certificates (application_id, manager_id, certificate_number, issued_to_name) 
-                    VALUES ($application_id, $manager_id, '$cert_num', '$student_name')";
-    } elseif ($action == 'return') {
-        $sql = "UPDATE reviews SET decision = 'needs_modification' WHERE id = $review_id";
-        $sql_app = "UPDATE applications SET current_stage = 'under_review' WHERE id = $application_id";
-        $sql_cert = null;
+    if (!$data) {
+        die(json_encode(['status' => 'error', 'message' => 'بيانات غير صالحة']));
     }
+
+    $application_id = $data['application_id'];
+    $student_id = $data['student_id'];
+    $serial_num = $data['serial_number'];
+    $student_name = $data['full_name'];
 
     $conn->begin_transaction();
 
     try {
-        $conn->query($sql);
-        $conn->query($sql_app);
-        if ($action == 'approve' && isset($sql_cert)) {
-            $conn->query($sql_cert);
+        if ($action == 'approve') {
+            $conn->query("UPDATE reviews SET decision = 'approved' WHERE id = $review_id");
+            $conn->query("UPDATE applications SET current_stage = 'approved' WHERE id = $application_id");
+
+            $cert_num = "CERT-" . date('Y') . "-" . str_pad($application_id, 5, '0', STR_PAD_LEFT);
+            $manager_id = $_SESSION['user_id'] ?? 11;
+            $conn->query("INSERT IGNORE INTO certificates (application_id, student_id, manager_id, certificate_number, issued_to_name) 
+                        VALUES ($application_id, $student_id, $manager_id, '$cert_num', '$student_name')");
+
+            $msg = "مبروك! تم اعتماد بحثك ذو الرقم التسلسلي ($serial_num)نهائياً. وتم إصدار شهادة رقم ($cert_num) باسمك. يمكنك الآن تحميل شهادتك .";
+            $stmt = $conn->prepare("INSERT INTO notifications (user_id, application_id, message, channel) VALUES (?, ?, ?, 'system')");
+            $stmt->bind_param("iis", $student_id, $application_id, $msg);
+            $stmt->execute();
+
+        } elseif ($action == 'return') {
+            $conn->query("UPDATE reviews SET decision = 'needs_modification' WHERE id = $review_id");
+            $conn->query("UPDATE applications SET current_stage = 'under_review' WHERE id = $application_id");
+
+            $msg = "تمت مراجعة طلبك ($serial_num)، وتمت إعادته للمراجع لاستيفاء بعض الملاحظات.";
+            $stmt = $conn->prepare("INSERT INTO notifications (user_id, application_id, message, channel) VALUES (?, ?, ?, 'system')");
+            $stmt->bind_param("iis", $student_id, $application_id, $msg);
+            $stmt->execute();
         }
 
         $conn->commit();
 
-        header('Content-Type: application/json');
-        $response = ['status' => 'success'];
-        if ($action == 'approve') {
-            $response['cert_url'] = 'view_certificate.php?app_id=' . $application_id;
-        }
-
-        echo json_encode($response);
-        exit();
-    } catch (Exception $e) {
-        $conn->rollback();
+        ob_clean(); 
         header('Content-Type: application/json');
         echo json_encode([
-            'status' => 'error',
-            'message' => 'حدث خطأ: ' . $e->getMessage()
+            'status' => 'success',
+            'cert_url' => ($action == 'approve') ? 'view_certificate.php?app_id=' . $application_id : null
         ]);
+        exit();
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        ob_clean();
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         exit();
     }
 }
