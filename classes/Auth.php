@@ -1,5 +1,4 @@
-<!-- class with db fields and crud over them -->
- <?php
+<?php
 class Auth {
     public static function check() {
         if(session_status() === PHP_SESSION_NONE) {
