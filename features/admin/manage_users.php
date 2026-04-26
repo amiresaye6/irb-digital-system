@@ -93,12 +93,16 @@ foreach ($allUsers as $u) {
                 <label style="display:block; font-weight:800; font-size:0.8rem; margin-bottom:5px;">البحث العام</label>
                 <input type="text" id="mainSearch" class="search-input" placeholder="بحث بالاسم، البريد، الرقم القومي...">
             </div>
-            <div style="width: 200px;display: none;">
+            <div style="width: 200px;">
                 <label style="display:block; font-weight:800; font-size:0.8rem; margin-bottom:5px;">نوع الحساب</label>
                 <select id="roleFilter" class="search-input" style="background-image:none; padding-right:12px;">
+                   
                     <option value="all">الكل</option>
-                    <option value="student">Student</option>
-                    <option value="admin">Admin</option>
+                    <option value="student">باحث / طالب</option>
+                    <option value="admin">مدير نظام</option>
+                   <option value="manager">مدير عام</option>
+                   <option value="reviewer">مُراجع</option>
+                    <option value="sample_officer">مسؤول عينات</option>
                 </select>
             </div>
         </div>
@@ -166,12 +170,35 @@ foreach ($allUsers as $u) {
     </div>
 
     <script>
-        document.getElementById('mainSearch').addEventListener('input', function(e) {
-            let term = e.target.value.toLowerCase();
-            document.querySelectorAll('#activeUsersTable tr').forEach(tr => {
-                tr.style.display = tr.getAttribute('data-search').includes(term) ? '' : 'none';
-            });
+    const mainSearch = document.getElementById('mainSearch');
+    const roleFilter = document.getElementById('roleFilter');
+    const rows = document.querySelectorAll('#activeUsersTable tr');
+
+    function filterTable() {
+        const searchTerm = mainSearch.value.toLowerCase();
+        const roleTerm = roleFilter.value;
+
+        rows.forEach(tr => {
+            const rowSearchText = tr.getAttribute('data-search');
+            const rowRole = tr.getAttribute('data-role');
+
+            // شرط السيرش: هل النص موجود؟
+            const matchesSearch = rowSearchText.includes(searchTerm);
+            // شرط الفلتر: هل الدور مطابق أو المختار هو "الكل"؟
+            const matchesRole = (roleTerm === 'all' || rowRole === roleTerm);
+
+            // لو الشرطين تحققوا اظهر الصف، غير كدة اخفيه
+            if (matchesSearch && matchesRole) {
+                tr.style.display = '';
+            } else {
+                tr.style.display = 'none';
+            }
         });
-    </script>
+    }
+
+    // تشغيل الدالة لما المستحدم يكتب أو يغير الفلتر
+    mainSearch.addEventListener('input', filterTable);
+    roleFilter.addEventListener('change', filterTable);
+</script>
 </body>
 </html>
