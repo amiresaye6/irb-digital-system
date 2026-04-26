@@ -215,6 +215,35 @@ class Reviews {
                 $comment_stmt->bind_param("is", $review_id, $comment);
                 $comment_stmt->execute();
             }
+            
+           // if all reviewers approved  then push notification to manager
+            $check_all = "SELECT COUNT(*) as total, SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as approved_count FROM reviews WHERE application_id = ?";
+            $ca_stmt = $this->db->prepare($check_all);
+            $ca_stmt->bind_param("i", $application_id);
+            $ca_stmt->execute();
+            $ca_res = $ca_stmt->get_result()->fetch_assoc();
+            
+            if ($ca_res && $ca_res['total'] > 0 && $ca_res['total'] == $ca_res['approved_count']) {
+                $upd_stage = "UPDATE applications SET current_stage = 'approved_by_reviewer' WHERE id = ?";
+                $upd_stmt = $this->db->prepare($upd_stage);
+                $upd_stmt->bind_param("i", $application_id);
+                if ($upd_stmt->execute()) {
+                    
+                    require_once __DIR__ . '/Applications.php';
+                    $mgr_sql = "SELECT id FROM users WHERE role = 'manager'";
+                    $mgr_res = $this->db->query($mgr_sql);
+                    if ($mgr_res && $mgr_res->num_rows > 0) {
+                        $appDetails = $this->getApplicationDetails($application_id);
+                        $serial = $appDetails ? $appDetails['serial_number'] : '';
+                        $message = "تمت الموافقة على البحث رقم ({$serial}) من قبل جميع المراجعين ويحتاج لاعتمادك النهائي.";
+                        
+                        while($mgr = $mgr_res->fetch_assoc()) {
+                            Applications::createNotification($this->db, $mgr['id'], $application_id, $message);
+                        }
+                    }
+                }
+            }
+
             return ['success' => true, 'message' => 'تم حفظ القرار بنجاح'];
         }
         return ['success' => false, 'message' => 'حدث خطأ أثناء حفظ القرار'];
