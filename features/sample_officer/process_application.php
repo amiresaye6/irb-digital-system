@@ -226,8 +226,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                         <?php if (file_exists($physicalPath)): ?>
                                                 <div class="doc-actions">
-                                                    <a href="<?= $filePath ?>" target="_blank" class="btn-download" title="استعراض في تبويب جديد"><i class="fa-solid fa-eye"></i> استعراض</a>
-                                                    <a href="<?= $filePath ?>" download class="btn-secondary" title="تحميل الملف لجهازك"><i class="fa-solid fa-download"></i> تحميل</a>
+                                                    <a href="<?= $filePath ?>" target="_blank" class="btn-download" title="استعراض في تبويب جديد"><i class="fa-solid fa-eye"></i></a>
+                                                    <a href="<?= $filePath ?>" download class="btn-secondary" title="تحميل الملف لجهازك"><i class="fa-solid fa-download"></i></a>
                                                 </div>
                                         <?php else: ?>
                                                 <span style="color:var(--status-rejected-text); font-weight:700; font-size:0.85rem;">الملف غير متوفر حالياً</span>
