@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $max_size = 4 * 1024 * 1024; 
 
     $file_fields = [
-        'research'               => 'ملف البحث',
+        //'research'               => 'ملف البحث',
         'protocol'               => 'نموذج البروتوكول',
         'conflict_of_interest'   => 'إقرار تضارب المصالح',
         'irb_checklist'          => 'قائمة مراجعة IRB',
@@ -73,8 +73,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Success data 
     $title                  = $_POST['title'];
     $principal_investigator = $_POST['principal_investigator'];
-    $co_investigators_array = array_values(array_map('trim', explode(',', $_POST['co_investigators'])));
-    $co_investigators_json  = json_encode($co_investigators_array, JSON_UNESCAPED_UNICODE);
+    
+    $co_investigators_array = array_values(
+        array_filter(
+            array_map('trim', explode(',', $_POST['co_investigators']))
+        )
+    );
+
+$co_investigators_json = json_encode($co_investigators_array, JSON_UNESCAPED_UNICODE);
 
     $student_id = $_SESSION['user_id'] ;
     $database = new Database();
@@ -98,12 +104,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     //Success insert files
-    $research_dir  = __DIR__ . "/../../uploads/researches/";
+    //$research_dir  = __DIR__ . "/../../uploads/researches/";
     $documents_dir = __DIR__ . "/../../uploads/documents/$last_id/";
     $research_dir_db = "uploads/researches/";
     $documents_dir_db = "uploads/documents/$last_id/";
 
-    if (!is_dir($research_dir)) mkdir($research_dir, 0755, true);
+    //if (!is_dir($research_dir)) mkdir($research_dir, 0755, true);
     if (!is_dir($documents_dir)) mkdir($documents_dir, 0755, true);
 
     $docSql  = "INSERT INTO documents (application_id, document_type, file_path) VALUES (?, ?, ?)";
