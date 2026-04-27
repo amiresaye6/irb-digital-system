@@ -202,10 +202,14 @@ if (isset($_GET['app_id'])) {
     <div class="signature-section">
         
         <div class="sig-box">
-            <p style="margin-bottom: 5px; font-weight: bold;">مدير وحدة IRB</p>
-            <div class="sig-space">
-                <div style="margin-top: 40px; border-top: 1px dashed #555; width: 80%; margin-left: auto; margin-right: auto;"></div>
-                <small style="color: #999; font-size: 10px;">(توقيع السيد الأستاذ الدكتور مدير الوحدة)</small>
+            <p style=" font-weight: bold;">مدير وحدة IRB</p>
+            <small style="color: #999; font-size: 10px;">(توقيع السيد الأستاذ الدكتور مدير الوحدة)</small>
+
+            <div class="sig-space" style="border-bottom: none; position: relative;">
+                <img src="../../assets/images/signature.png" 
+                    alt="توقيع المدير" 
+                    style="max-width: 150px; max-height: 80px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);">
+                
             </div>
             <p><strong>أ.د. طارق الحديدي</strong></p>
         </div>
@@ -219,17 +223,19 @@ if (isset($_GET['app_id'])) {
         </div>
 
         <div class="sig-box">
-            <p style="margin-bottom: 5px; font-weight: bold;">عميد الكلية</p>
-            <div class="sig-space">
-                <div style="margin-top: 40px; border-top: 1px dashed #555; width: 80%; margin-left: auto; margin-right: auto;"></div>
-                <small style="color: #999; font-size: 10px;">(توقيع السيد الأستاذ الدكتور العميد)</small>
-            </div>
-            <p><strong>أ.د. محمود مصطفي طه</strong></p>
-        </div>
-        
-    </div>
+            <p style=" font-weight: bold;">عميد الكلية</p>
+            <small style="color: #999; font-size: 10px;">(توقيع السيد الأستاذ الدكتور عميد الكلية)</small>
 
-    <div style="position: absolute; bottom: 15mm; width: 85%; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 5px;">
+            <div class="sig-space" style="border-bottom: none; position: relative;">
+                <img src="../../assets/images/signature.png" 
+                    alt="توقيع العميد" 
+                    style="max-width: 150px; max-height: 80px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);">
+                
+            </div>
+            <p><strong>أ.د. محمود مصطفى طه</strong></p>
+        </div>
+    </div>
+    <div style="position: absolute; bottom: 15mm; width: 85%; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; ">
         هذه الشهادة صدرت إلكترونياً من نظام IRB الرقمي بجامعة الزقازيق
     </div>
 </div>
