@@ -67,7 +67,7 @@ if ($res3)
             <div class="nav-logos">
                 <img src="/irb-digital-system/assets/images/university-logo.png" alt="شعار الجامعة" title="شعار الجامعة"
                     onerror="this.style.display='none'">
-                <img src="/irb-digital-system/assets/images/faculty-logo.png" alt="شعار كلية الطب"
+                <img src="/irb-digital-system/assets/images/faculty-logo2.png" alt="شعار كلية الطب"
                     title="شعار كلية الطب" onerror="this.style.display='none'">
             </div>
 
