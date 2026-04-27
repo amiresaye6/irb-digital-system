@@ -171,6 +171,37 @@ $data = $_SESSION['form_data'] ?? [];
             grid-column: 1 / -1;
         }
 
+
+        select.investigator-title {
+            padding: 12px;
+            min-width: 170px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            background: var(--primary-light);
+            color: var(--text-main);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, var(--accent-base) 50%),
+                              linear-gradient(135deg, var(--accent-base) 50%, transparent 50%);
+            background-position: calc(100% - 18px) calc(50% - 3px),
+                                 calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-left: 35px;
+        }
+        
+        select.investigator-title:focus {
+            outline: none;
+            border-color: var(--accent-base);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
         @media (max-width: 1000px) {
             body {
                 margin-right: 0; 
@@ -223,21 +254,53 @@ $data = $_SESSION['form_data'] ?? [];
                 <input type="text" name="title" value="<?= htmlspecialchars($data['title'] ?? '') ?>" minlength="3" maxlength="80" required placeholder="اكتب هنا عنوان البحث الكامل">
             </div>
 
-            <div class="field-group">
+            <div class="field-group full-width">
                 <label>اسم الباحث الرئيسي</label>
                 <input type="text" name="principal_investigator" value="<?= htmlspecialchars($data['principal_investigator'] ?? '') ?>" minlength="3" maxlength="80" required>
             </div>
 
-            <div class="field-group">
+            <!--div class="field-group">
                 <label>المشاركون في البحث (مفصولين بفاصلة)</label>
                 <input type="text" name="co_investigators" placeholder="مثال : محمد ابراهيم , احمد اسامة  " value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>" minlength="3" required>
+            </div-->
+
+
+
+            <div class="field-group full-width">
+                <label>المشاركون في البحث</label>
+
+                <div id="coInvestigatorsWrapper">
+
+                    <div class="co-investigator-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <select class="investigator-title" style="padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+                            <option value="عضو هيئة تدريس">عضو هيئة تدريس</option>
+                            <option value="باحث">باحث</option>
+                            <option value="طالب">طالب</option>
+                        </select>
+
+                        <input type="text"
+                               class="investigator-name"
+                               placeholder="الاسم والانتماء (الجامعة - الكلية - القسم) مثال : مصطفى السيد شحاته اخصائى باطنة مستشفى جامعة بورسعيد"
+                               style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+
+                        <button type="button"
+                                onclick="addInvestigatorRow()"
+                                style="width:45px; height:45px; border:none; border-radius:50%; background:var(--accent-base); color:#fff; font-size:22px; cursor:pointer;">
+                            +
+                        </button>
+                    </div>
+
+                </div>
+
+                <input type="hidden" name="co_investigators" id="co_investigators_hidden"
+                       value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>">
             </div>
             
-            <div class="file-input-wrapper">
+            <!--div class="file-input-wrapper">
                 <label>ملف البحث (Research)</label>
                 <input type="file" required name="research">
                 <div class="upload-status"><i class="fa-solid fa-circle-check"></i> تم اختيار الملف</div>
-            </div>
+            </div-->
 
             <div class="file-input-wrapper">
                 <label>نموذج البروتوكول</label>
@@ -286,6 +349,71 @@ $data = $_SESSION['form_data'] ?? [];
     </form>
 </div>
 <script>
+function addInvestigatorRow() {
+    const wrapper = document.getElementById("coInvestigatorsWrapper");
+
+    const row = document.createElement("div");
+    row.className = "co-investigator-row";
+    row.style.cssText = "display:flex; gap:10px; margin-bottom:10px; align-items:center;";
+
+    row.innerHTML = `
+        <select class="investigator-title" style="padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+            <option value="عضو هيئة تدريس">عضو هيئة تدريس</option>
+            <option value="باحث">باحث</option>
+            <option value="طالب">طالب</option>
+        </select>
+
+        <input type="text"
+               class="investigator-name"
+               placeholder="الاسم والانتماء (الجامعة - الكلية - القسم)"
+               style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+
+        <button type="button"
+                onclick="removeInvestigatorRow(this)"
+                style="width:45px; height:45px; border:none; border-radius:50%; background:#dc3545; color:#fff; font-size:20px; cursor:pointer;">
+            ×
+        </button>
+    `;
+
+    wrapper.appendChild(row);
+}
+
+function removeInvestigatorRow(btn) {
+    btn.parentElement.remove();
+    buildCoInvestigators();
+}
+
+function buildCoInvestigators() {
+    const rows = document.querySelectorAll(".co-investigator-row");
+    let result = [];
+
+    rows.forEach(row => {
+        const title = row.querySelector(".investigator-title").value.trim();
+        const name  = row.querySelector(".investigator-name").value.trim();
+
+        if (name !== "") {
+            result.push(title + " " + name);
+        }
+    });
+
+    document.getElementById("co_investigators_hidden").value = result.join(",");
+}
+
+document.querySelector("form").addEventListener("submit", function () {
+    buildCoInvestigators();
+});
+
+document.addEventListener("input", function(e){
+    if(e.target.classList.contains("investigator-name")){
+        buildCoInvestigators();
+    }
+});
+
+document.addEventListener("change", function(e){
+    if(e.target.classList.contains("investigator-title")){
+        buildCoInvestigators();
+    }
+});
 document.querySelectorAll('input[type="file"]').forEach(input => {
     input.addEventListener('change', function() {
         const statusIndicator = this.parentElement.querySelector('.upload-status');
