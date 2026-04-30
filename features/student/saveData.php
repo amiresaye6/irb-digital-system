@@ -6,7 +6,8 @@ Auth::checkRole('student');
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_source']) && $_POST['form_source'] === 'apply_research_form') {
+//if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $errors = [];
 
     // Validation
