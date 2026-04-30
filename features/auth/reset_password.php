@@ -7,7 +7,6 @@ $error  = $_SESSION['reset_error']   ?? '';
 $success= $_SESSION['reset_success'] ?? '';
 unset($_SESSION['reset_error'], $_SESSION['reset_success']);
 
-// ✅ نتحقق من الـ token
 $dbobj      = new Database();
 $conn       = $dbobj->getconn();
 $safe_token = $conn->real_escape_string($token);
@@ -229,7 +228,6 @@ if(!$reset) {
     </div>
 
     <?php if(isset($expired)): ?>
-        <!-- ✅ الـ token منتهي أو غلط -->
         <div class="expired-box">
             <div class="expired-icon">
                 <svg viewBox="0 0 24 24">
