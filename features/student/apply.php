@@ -248,6 +248,7 @@ $data = $_SESSION['form_data'] ?? [];
     <?php endif; ?>
 
     <form action="saveData.php" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="form_source" value="apply_research_form">
         <div class="grid-container">
             <div class="field-group full-width">
                 <label>عنوان البحث</label>

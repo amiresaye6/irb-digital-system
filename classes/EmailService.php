@@ -11,7 +11,7 @@ class EmailService
     {
         $env = require __DIR__ . '/../includes/env.php';
        
-    global $env;
+    // global $env;
 
         // Skip if SMTP is not configured
         if (empty($env['MAIL_USERNAME']) || empty($env['MAIL_PASSWORD'])) {

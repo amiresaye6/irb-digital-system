@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
+    
     $safe_token = $conn->real_escape_string($token);
     $check_sql  = "SELECT email FROM password_resets WHERE token = '$safe_token' AND expires_at > NOW() LIMIT 1";
     $result     = $conn->query($check_sql);
@@ -30,19 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $email = $reset_data['email'];
 
-    
+   
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
   
+
     $update_user = $conn->query("UPDATE users SET password_hash = '$hashed_password' WHERE email = '$email'");
 
     if ($update_user) {
-       
+      
         $conn->query("DELETE FROM password_resets WHERE email = '$email'");
 
-
+       
+        $user_row = $dbobj->selectWhere("users", "email", $email);
         $dbobj->insert("logs", [
-            "action" => "تغيير كلمة المرور بنجاح",
-            "details" => "عن طريق رابط استعادة المرور للإيميل: $email"
+            "user_id" => $user_row ? $user_row['id'] : null,
+            "action" => "تغيير كلمة المرور بنجاح (استعادة) للإيميل: $email",
+            "type" => "profile"
         ]);
 
         $_SESSION['login_success'] = "تم تغيير كلمة المرور بنجاح، يمكنك تسجيل الدخول الآن.";

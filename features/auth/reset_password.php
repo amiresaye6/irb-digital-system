@@ -243,7 +243,6 @@ if(!$reset) {
         </div>
 
     <?php else: ?>
-        <!-- ✅ الـ token صح -->
         <p class="card-title">تعيين كلمة مرور جديدة</p>
         <p class="card-sub">يجب أن تكون كلمة المرور 8 أحرف على الأقل</p>
 

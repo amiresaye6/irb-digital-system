@@ -5,7 +5,12 @@ error_reporting(E_ALL);
 session_start();
 require_once "../../init.php";
 require_once __DIR__ . "/../../classes/EmailService.php";
+$env = require __DIR__ . '/../../includes/env.php';
+
+
+
 $email = trim($_POST['email'] ?? '');
+$BASE_URL = $env['APP_URL'];
 
 if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $_SESSION['reset_error'] = "البريد الإلكتروني غير صالح";
@@ -23,21 +28,19 @@ if(!$user) {
 }
 
 
-$token      = bin2hex(random_bytes(32));
-$expires_at = date('Y-m-d H:i:s', time() + 3600); 
+$token = bin2hex(random_bytes(32));
 
-
+// Delete old tokens
 $dbobj->getconn()->query("DELETE FROM password_resets WHERE email = '" . $dbobj->getconn()->real_escape_string($email) . "'");
 
+// Insert new token with 5-minute expiration using DB time
+$email_safe = $dbobj->getconn()->real_escape_string($email);
+$token_safe = $dbobj->getconn()->real_escape_string($token);
+$query = "INSERT INTO password_resets (email, token, expires_at) VALUES ('$email_safe', '$token_safe', DATE_ADD(NOW(), INTERVAL 5 MINUTE))";
+$dbobj->getconn()->query($query);
 
-$dbobj->insert("password_resets", [
-    "email"      => $email,
-    "token"      => $token,
-    "expires_at" => $expires_at
-]);
 
-
-$reset_link =  BASE_URL . "/features/auth/reset_password.php?token=" . $token;
+$reset_link =  $BASE_URL . "/features/auth/reset_password.php?token=" . $token;
 
 
 $subject = 'استعادة كلمة المرور - نظام IRB الرقمي';
@@ -47,18 +50,15 @@ $messageBody .= "<a href='{$reset_link}' style='display:inline-block; background
 $messageBody .= "إذا لم تطلب هذا التغيير، يمكنك تجاهل هذا البريد.";
 
 
-$sent = EmailService::send($email, $user['full_name'], $subject, $messageBody);
+ EmailService::sendAsync($email, $user['full_name'], $subject, $messageBody);
 
-if ($sent) {
-   
+
     $dbobj->insert("logs", [
         "user_id" => $user['id'],
         "action"  => "طلب استعادة كلمة المرور"
     ]);
     $_SESSION['reset_success'] = "إذا كان البريد مسجلاً، ستصلك رسالة خلال دقائق";
-} else {
-    $_SESSION['reset_error'] = "حدث خطأ في إرسال البريد، حاول مرة أخرى لاحقاً";
-}
+
 
 header("Location: forgot_password.php");
 exit();

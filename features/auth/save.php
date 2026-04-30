@@ -3,6 +3,8 @@ session_start();
 require_once "../../init.php";
 require_once "../../classes/EmailService.php";
 
+unset($_SESSION['errors']);
+
 $full_name= trim($_POST['full_name']    ?? '');
 $email= trim($_POST['email']        ?? '');
 $password=$_POST['password']     ?? '';
