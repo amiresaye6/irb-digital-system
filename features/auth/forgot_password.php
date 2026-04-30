@@ -1,18 +1,17 @@
 <?php
 session_start();
-$error= $_GET['error'] ?? '';
-$success= $_SESSION['success'] ?? '';
-unset($_SESSION['success']);
+$success = $_SESSION['reset_success'] ?? '';
+$error   = $_SESSION['reset_error']   ?? '';
+unset($_SESSION['reset_success'], $_SESSION['reset_error']);
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Document</title>
-   
-<style>
+    <title>نسيت كلمة المرور | IRB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -80,6 +79,7 @@ unset($_SESSION['success']);
             color: #64748b;
             text-align: center;
             margin-bottom: 28px;
+            line-height: 1.6;
         }
 
         .alert {
@@ -102,7 +102,6 @@ unset($_SESSION['success']);
         }
 
         .alert-danger  { background: #fadbd8; color: #991b1b; }
-        .alert-warning { background: #fef3c7; color: #92400e; }
         .alert-success { background: #d5f4e6; color: #0f6e56; }
 
         .field {
@@ -139,17 +138,9 @@ unset($_SESSION['success']);
             box-shadow: 0 0 0 4px rgba(26, 188, 156, 0.08);
         }
 
-        .field input::placeholder {
-            color: #94a3b8;
-            font-size: 13px;
-        }
+        .field input::placeholder { color: #94a3b8; font-size: 13px; }
 
-        /* .field input.error {
-            border-color: #e24b4a;
-            box-shadow: 0 0 0 4px rgba(226, 75, 74, 0.08);
-        } */
-
-        .btn-next {
+        .btn-submit {
             background: #1abc9c;
             border: none;
             color: white;
@@ -166,15 +157,9 @@ unset($_SESSION['success']);
             width: 100%;
             margin-top: 8px;
             transition: all 0.2s;
-            letter-spacing: 0.3px;
         }
 
-        .btn-next:hover {
-            background: #16a085;
-            transform: translateY(-1px);
-        }
-
-        .btn-next:active { transform: translateY(0); }
+        .btn-submit:hover { background: #16a085; transform: translateY(-1px); }
 
         .divider {
             display: flex;
@@ -183,16 +168,8 @@ unset($_SESSION['success']);
             margin: 20px 0;
         }
 
-        .divider-line {
-            flex: 1;
-            height: 0.5px;
-            background: #e2e8f0;
-        }
-
-        .divider-text {
-            font-size: 12px;
-            color: #94a3b8;
-        }
+        .divider-line { flex: 1; height: 0.5px; background: #e2e8f0; }
+        .divider-text { font-size: 12px; color: #94a3b8; }
 
         .footer-note {
             text-align: center;
@@ -205,45 +182,27 @@ unset($_SESSION['success']);
             text-decoration: none;
             font-weight: 600;
         }
-
-        .footer-note a:hover { text-decoration: underline; }
-
-        @media (max-width: 480px) {
-            .card { padding: 32px 20px; }
-        }
     </style>
 </head>
 <body>
-
 <div class="card">
     <div class="card-accent"></div>
 
-    <!-- Logo -->
     <div class="logo-wrap">
         <div class="logo-circle">
             <svg viewBox="0 0 24 24">
-                <path d="M19.5 8.5h-2v-2a5.5 5.5 0 0 0-11 0v2h-2A1.5 1.5 0 0 0 3 10v9a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 19v-9a1.5 1.5 0 0 0-1.5-1.5zm-9 6.5a1.5 1.5 0 1 1 3 0v2h-3v-2zm1-9a3.5 3.5 0 0 1 3.5 3.5v2h-7v-2A3.5 3.5 0 0 1 11.5 6z"/>
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4c1.4 0 2.8 1.1 2.8 2.5V9c.6.3 1.2.9 1.2 1.5v5c0 .8-.9 1.5-2 1.5H10c-1.1 0-2-.7-2-1.5v-5c0-.6.6-1.2 1.2-1.5V7.5C9.2 6.1 10.6 5 12 5z"/>
             </svg>
         </div>
     </div>
 
-    <p class="card-title">مرحباً بعودتك</p>
-    <p class="card-sub">سجّل دخولك للوصول إلى بوابة IRB البحثية</p>
+    <p class="card-title">استعادة كلمة المرور</p>
+    <p class="card-sub">أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين</p>
 
-    <?php if($error == 'invalid'): ?>
+    <?php if($error): ?>
         <div class="alert alert-danger">
             <span class="alert-dot"></span>
-            <span>البريد الإلكتروني أو كلمة المرور غير صحيحة</span>
-        </div>
-    <?php elseif($error == 'inactive'): ?>
-        <div class="alert alert-warning">
-            <span class="alert-dot"></span>
-            <span>حسابك قيد المراجعة، يرجى انتظار موافقة الإدارة</span>
-        </div>
-    <?php elseif($error == 'must_login'): ?>
-        <div class="alert alert-warning">
-            <span class="alert-dot"></span>
-            <span>يرجى تسجيل الدخول للوصول لهذه الصفحة</span>
+            <span><?php echo htmlspecialchars($error); ?></span>
         </div>
     <?php endif; ?>
 
@@ -254,37 +213,21 @@ unset($_SESSION['success']);
         </div>
     <?php endif; ?>
 
-    <form action="submitlogin.php" method="POST">
+    <form action="send_reset.php" method="POST">
         <div class="field">
-            <label for="email">البريد الإلكتروني</label>
-            <input type="email" id="email" name="email"
+            <label>البريد الإلكتروني</label>
+            <input type="email" name="email"
                    placeholder="name@university.edu.eg"
-                   class="<?php echo $error == 'invalid' ? 'error' : ''; ?>"
                    required>
         </div>
 
-        <div class="field">
-            <label for="password">كلمة المرور</label>
-            <input type="password" id="password" name="password"
-                   placeholder="••••••••"
-                   class="<?php echo $error == 'invalid' ? 'error' : ''; ?>"
-                   required>
-        </div>
-
-        <button type="submit" class="btn-next">
-            دخول للمنصة
+        <button type="submit" class="btn-submit">
+            إرسال رابط الاستعادة
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/>
             </svg>
         </button>
     </form>
-    <!-- بعد زرار تسجيل الدخول مباشرة -->
-<div style="text-align:center;margin-top:12px;">
-    <a href="forgot_password.php"
-       style="color:#64748b;font-size:13px;text-decoration:none;">
-        نسيت كلمة المرور؟
-    </a>
-</div>
 
     <div class="divider">
         <div class="divider-line"></div>
@@ -293,9 +236,8 @@ unset($_SESSION['success']);
     </div>
 
     <p class="footer-note">
-        ليس لديك حساب؟ <a href="register.php">إنشاء حساب جديد</a>
+        تذكرت كلمة المرور؟ <a href="login.php">تسجيل دخول</a>
     </p>
 </div>
-
 </body>
 </html>

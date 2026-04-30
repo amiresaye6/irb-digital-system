@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -11,6 +10,8 @@ class EmailService
     public static function send(string $toEmail, string $toName, string $subject, string $messageBody, string $appSerial = ''): bool
     {
         $env = require __DIR__ . '/../includes/env.php';
+       
+    global $env;
 
         // Skip if SMTP is not configured
         if (empty($env['MAIL_USERNAME']) || empty($env['MAIL_PASSWORD'])) {
@@ -49,11 +50,16 @@ class EmailService
 
         } catch (Exception $e) {
             error_log("[EmailService] Failed to send email to $toEmail: " . $mail->ErrorInfo);
+        
+            // die("Gmail Error: " . $mail->ErrorInfo);
+   
             return false;
         }
     }
     public static function sendAsync(string $toEmail, string $toName, string $subject, string $messageBody, string $appSerial = ''): void
     {
+        require_once __DIR__ . '/../includes/env.php';
+        global $env;
         $scriptPath = __DIR__ . '/EmailWorker.php';
 
         // Encode arguments as base64 JSON to safely pass via CLI
@@ -125,7 +131,7 @@ class EmailService
 
         $year = date('Y');
         $escapedName = htmlspecialchars($recipientName);
-        $escapedBody = nl2br(htmlspecialchars($messageBody));
+        $escapedBody = nl2br($messageBody);
 
         return <<<HTML
 <!DOCTYPE html>
