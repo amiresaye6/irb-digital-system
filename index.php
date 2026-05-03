@@ -85,6 +85,8 @@ if ($res3)
             <a href="#about" onclick="closeMenu()">عن اللجنة</a>
             <a href="#features" onclick="closeMenu()">المميزات</a>
             <a href="#workflow" onclick="closeMenu()">آلية العمل</a>
+            <a href="verify.php" style="color: var(--accent-base);"><i class="fa-solid fa-shield-check"></i> التحقق من
+                الشهادات</a>
             <?php if ($isLoggedIn): ?>
                 <a href="<?= htmlspecialchars($dashboard_url) ?>" class="btn-nav"><i class="fa-solid fa-gauge"></i> لوحة
                     التحكم</a>
@@ -191,6 +193,33 @@ if ($res3)
     </section>
 
     <?php include __DIR__ . '/includes/landing/journey.php'; ?>
+
+    <section id="verify-section" style="padding: 120px 50px; background: #fff; position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: var(--accent-light); border-radius: 50%; opacity: 0.3;">
+        </div>
+
+        <div
+            style="max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 60px; background: var(--primary-base); padding: 60px; border-radius: 40px; color: white; position: relative; z-index: 2;">
+            <div style="flex: 1; text-align: right;">
+                <h2 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 20px; line-height: 1.3;">نظام التحقق من
+                    <br><span style="color: var(--accent-base);">صحة الشهادات</span></h2>
+                <p style="font-size: 1.1rem; opacity: 0.8; margin-bottom: 35px; line-height: 1.8;">نقدم ميزة التحقق
+                    الفوري لضمان موثوقية الشهادات الصادرة. يمكن لأي جهة خارجية التأكد من بيانات الاعتماد عبر إدخال الكود
+                    المرجعي للبحث.</p>
+                <a href="verify.php" class="btn-primary"
+                    style="display: inline-flex; align-items: center; gap: 12px; background: var(--accent-base); border: none;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    ابدأ التحقق الآن
+                </a>
+            </div>
+            <div style="flex: 0.8; display: flex; justify-content: center;">
+                <div style="font-size: 15rem; color: rgba(255,255,255,0.1); transform: rotate(-15deg);">
+                    <i class="fa-solid fa-certificate"></i>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <footer class="main-footer">
         <div class="footer-container">

@@ -30,8 +30,10 @@ if (!empty($app['co_investigators'])) {
     }
 }
 
+// Logic updates for dynamic workflow
 $reviewers = $reviewsObj->getAvailableReviewers();
-$assigned = $reviewsObj->getAssignedReviewers($application_id);
+$activeAssignment = $reviewsObj->getActiveAssignment($application_id);
+$history = $reviewsObj->getAssignmentHistory($application_id);
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -119,18 +121,6 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             grid-column: 1 / -1;
         }
 
-        .detail-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: var(--primary-light);
-            color: var(--primary-base);
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
         .details-list {
             list-style: none;
             padding: 0;
@@ -186,57 +176,76 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             font-size: 0.9rem;
         }
 
+        /* --- Updated Tracking/History Styles --- */
         .assigned-section {
             margin-top: 20px;
             border-top: 2px solid var(--border-light);
             padding-top: 18px;
         }
 
-        .assigned-section .info-label {
-            color: var(--primary-base);
-        }
-
-        .assigned-list {
+        .history-list {
             list-style: none;
             padding: 0;
             margin: 0;
             display: flex;
             flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: #fff;
+            border: 1px solid var(--border-light);
+            padding: 14px;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-user {
+            font-weight: 700;
+            color: var(--primary-base);
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
 
-        .assigned-list li {
-            background: var(--status-approved-bg);
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--status-approved-text);
-            font-weight: 700;
-            border-right: 4px solid var(--success-base);
-            font-size: 0.9rem;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+        .status-pill {
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
         }
 
-        .assigned-list li i {
-            color: var(--success-base);
-            flex-shrink: 0;
+        .status-pill.awaiting { background: #fff3cd; color: #856404; }
+        .status-pill.accepted { background: #d4edda; color: #155724; }
+        .status-pill.refused { background: #f8d7da; color: #721c24; }
+        .status-pill.timeout { background: #e2e3e5; color: #383d41; }
+
+        .refusal-reason {
+            background: rgba(231, 76, 60, 0.05);
+            border-right: 3px solid var(--alert-base);
+            padding: 10px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            border-radius: 4px;
         }
 
-        .form-group {
-            margin-bottom: 18px;
-        }
-
+        /* --- Form Styles --- */
+        .form-group { margin-bottom: 18px; }
         .form-label {
             font-weight: 800;
             color: var(--primary-base);
             display: block;
             margin-bottom: 8px;
             font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .button-group {
@@ -257,18 +266,13 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             font-weight: 800;
             font-size: 0.95rem;
             transition: all var(--transition-smooth);
-            box-shadow: var(--shadow-md);
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            white-space: nowrap;
         }
 
-        .btn-submit:hover {
-            background: var(--accent-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
+        .btn-submit:hover { background: var(--accent-dark); transform: translateY(-2px); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; transform: none; }
 
         .btn-back {
             background: var(--primary-light);
@@ -276,40 +280,25 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             border: 2px solid var(--primary-base);
             padding: 12px 24px;
             border-radius: var(--radius-md);
-            cursor: pointer;
-            font-family: inherit;
             font-weight: 800;
-            font-size: 0.95rem;
             text-decoration: none;
-            transition: all var(--transition-smooth);
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            white-space: nowrap;
         }
 
-        .btn-back:hover {
-            background: var(--primary-base);
-            color: white;
-            transform: translateY(-2px);
+        .warning-box {
+            background: #fff8f8;
+            border: 1px solid #fee2e2;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #b91c1c;
         }
 
-        .form-hint {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-            padding: 8px 12px;
-            background: var(--primary-light);
-            border-right: 3px solid var(--accent-base);
-            border-radius: 4px;
-            font-weight: 500;
-            line-height: 1.4;
-        }
-
-        body {
-            background: var(--bg-page);
-        }
-
+        body { background: var(--bg-page); }
         .content {
             margin-right: 260px;
             min-height: 100vh;
@@ -319,39 +308,24 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             flex-direction: column;
             align-items: center;
         }
+        .content > * { width: 100%; max-width: 980px; }
 
-        .content > * {
-            width: 100%;
-            max-width: 980px;
-        }
-
-        .data-card {
-            max-width: 980px;
-        }
-
-        @media (max-width: 992px) {
-            .content {
-                margin-right: 0;
-                padding: 24px 14px;
-            }
-        }
+        @media (max-width: 992px) { .content { margin-right: 0; } }
     </style>
 </head>
 <body>
-    <?php
-    include __DIR__ . '/../../includes/sidebar.php';
-    ?>
+    <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
 
     <div class="content">
         <h2 class="page-title">
             <i class="fa-solid fa-user-plus"></i>
-            إسناد مراجع للبحث
+            إسناد ومتابعة مراجع البحث
         </h2>
         <p class="page-subtitle">
-            اختر المراجع المتخصص المناسب لتقييم هذا البحث العلمي
+            إدارة عملية التحكيم وتتبع حالة قبول المراجعين للبحث المختار.
         </p>
 
-        <!-- Application Details Card -->
+        <!-- Application Summary Card -->
         <div class="data-card">
             <div class="summary-grid">
                 <div class="info-group">
@@ -362,78 +336,61 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
                 <div class="info-group">
                     <span class="info-label">تاريخ التقديم</span>
                     <div class="meta-row">
-                        <span class="meta-chip">
-                            <i class="fa-regular fa-calendar"></i>
-                            <?= htmlspecialchars(irb_format_arabic_date($app['created_at'])) ?>
-                        </span>
-                        <span class="meta-chip">
-                            <i class="fa-regular fa-clock"></i>
-                            <?= htmlspecialchars(irb_format_arabic_time($app['created_at'])) ?>
-                        </span>
+                        <span class="meta-chip"><i class="fa-regular fa-calendar"></i> <?= htmlspecialchars(irb_format_arabic_date($app['created_at'])) ?></span>
+                        <span class="meta-chip"><i class="fa-regular fa-clock"></i> <?= htmlspecialchars(irb_format_arabic_time($app['created_at'])) ?></span>
                     </div>
                 </div>
 
                 <div class="info-group wide-group">
                     <span class="info-label">عنوان البحث</span>
-                    <div class="info-value">
-                        <i class="fa-solid fa-book" style="color: var(--accent-base);"></i>
-                        <?= htmlspecialchars($app['title']) ?>
-                    </div>
+                    <div class="info-value"><i class="fa-solid fa-book" style="color: var(--accent-base);"></i> <?= htmlspecialchars($app['title']) ?></div>
                 </div>
 
                 <div class="info-group">
                     <span class="info-label">الباحث الرئيسي</span>
-                    <div class="info-value">
-                        <i class="fa-solid fa-user-doctor" style="color: var(--primary-base);"></i>
-                        <?= htmlspecialchars($app['principal_investigator']) ?>
-                    </div>
+                    <div class="info-value"><i class="fa-solid fa-user-doctor" style="color: var(--primary-base);"></i> <?= htmlspecialchars($app['principal_investigator']) ?></div>
                 </div>
 
                 <div class="info-group">
-                    <span class="info-label">الكلية</span>
-                    <div class="info-value">
-                        <i class="fa-solid fa-graduation-cap" style="color: var(--accent-base);"></i>
-                        <?= !empty($app['faculty']) ? htmlspecialchars($app['faculty']) : 'غير متوفر' ?>
-                    </div>
-                </div>
-
-                <div class="info-group wide-group">
-                    <span class="info-label">القسم</span>
-                    <div class="info-value">
-                        <i class="fa-solid fa-building-columns" style="color: var(--primary-base);"></i>
-                        <?= !empty($app['department']) ? htmlspecialchars($app['department']) : 'غير متوفر' ?>
-                    </div>
-                </div>
-
-                <div class="info-group wide-group">
-                    <span class="info-label">الباحثون الآخرون</span>
-                    <?php if (!empty($coInvestigators)): ?>
-                        <ul class="details-list">
-                            <?php foreach ($coInvestigators as $coInvestigator): ?>
-                                <li>
-                                    <i class="fa-solid fa-user"></i>
-                                    <?= htmlspecialchars($coInvestigator) ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php else: ?>
-                        <div class="details-empty">لا يوجد باحثون آخرون مسجلون لهذا البحث.</div>
-                    <?php endif; ?>
+                    <span class="info-label">الكلية / القسم</span>
+                    <div class="info-value"><i class="fa-solid fa-graduation-cap"></i> <?= htmlspecialchars($app['faculty'] ?? 'غير متوفر') ?> | <?= htmlspecialchars($app['department'] ?? 'غير متوفر') ?></div>
                 </div>
             </div>
 
-            <!-- Assigned Reviewers List -->
-            <?php if(!empty($assigned)): ?>
+            <!-- Tracking History Section -->
+            <?php if(!empty($history)): ?>
                 <div class="assigned-section">
-                    <span class="info-label">
-                        <i class="fa-solid fa-check-circle" style="margin-right: 5px;"></i>
-                        المراجعون المعينون (<?= count($assigned) ?>)
+                    <span class="info-label" style="margin-bottom:15px;">
+                        <i class="fa-solid fa-clock-rotate-left" style="margin-left: 5px;"></i>
+                        سجل محاولات الإسناد والمتابعة
                     </span>
-                    <ul class="assigned-list">
-                        <?php foreach($assigned as $rev): ?>
-                            <li>
-                                <i class="fa-solid fa-user-check"></i>
-                                <?= htmlspecialchars($rev['full_name']) ?>
+                    <ul class="history-list">
+                        <?php foreach($history as $h): ?>
+                            <li class="history-item">
+                                <div class="history-header">
+                                    <div class="history-user">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                        أ.د. <?= htmlspecialchars($h['full_name']) ?>
+                                    </div>
+                                    <?php 
+                                        $statusClass = $h['assignment_status'];
+                                        $statusText = [
+                                            'awaiting_acceptance' => 'بانتظار الرد',
+                                            'accepted' => 'تم القبول',
+                                            'refused' => 'اعتذر',
+                                            'timed_out' => 'انتهت المهلة'
+                                        ][$statusClass] ?? $statusClass;
+                                    ?>
+                                    <span class="status-pill <?= $statusClass ?>"><?= $statusText ?></span>
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                    بتاريخ: <?= irb_format_arabic_date($h['assigned_at']) ?> الساعة <?= irb_format_arabic_time($h['assigned_at']) ?>
+                                </div>
+                                <?php if($statusClass == 'refused' && !empty($h['refusal_reason'])): ?>
+                                    <div class="refusal-reason">
+                                        <strong>سبب الاعتذار:</strong> <?= htmlspecialchars($h['refusal_reason']) ?>
+                                    </div>
+                                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -441,55 +398,49 @@ $assigned = $reviewsObj->getAssignedReviewers($application_id);
             <?php endif; ?>
         </div>
 
-        <!-- Reviewer Selection Card -->
+        <!-- Assignment Form or Lockdown Message -->
         <div class="data-card">
-            <h3 style="color: var(--primary-base); margin-top: 0; margin-bottom: 18px; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-base);"></i>
-                اختر المراجع الجديد
-            </h3>
-
-            <form action="submit_assignment.php" method="POST">
-                <input type="hidden" name="application_id" value="<?= $app['id'] ?>">
-
-                <div class="form-group">
-                    <label class="form-label" for="reviewer_id">
-                        المراجع المتخصص
-                    </label>
-                    <select name="reviewer_id" id="reviewer_id" required class="form-select irb-select">
-                        <option value="">-- اختر المراجع --</option>
-                        <?php foreach ($reviewers as $rev): ?>
-                            <?php
-                                $isAssigned = false;
-                                foreach($assigned as $a) {
-                                    if((int)$a['id'] === (int)$rev['id']) {
-                                        $isAssigned = true; break;
-                                    }
-                                }
-                                if(!$isAssigned):
-                            ?>
-                            <option value="<?= $rev['id'] ?>">
-                                أ.د. <?= htmlspecialchars($rev['full_name']) ?>
-                                <?= !empty($rev['department']) ? '| ' . htmlspecialchars($rev['department']) : '' ?>
-                            </option>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </select>
-                    <div class="form-hint">
-                        اختر من قائمة المراجعين المتاحين الذين لم يتم تعيينهم مسبقاً لهذا البحث
+            <?php if ($activeAssignment): ?>
+                <div class="warning-box">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem;"></i>
+                    <div>
+                        <strong style="display:block; margin-bottom:4px; font-size:1.1rem;">الإسناد مقفل حالياً</strong>
+                        هذا البحث مسند بالفعل إلى <strong><?= htmlspecialchars($activeAssignment['full_name']) ?></strong>. 
+                        لا يمكنك إسناد مراجع آخر حتى يقوم المراجع الحالي بالرد أو تنتهي مهلة الـ 48 ساعة تلقائياً.
                     </div>
                 </div>
-
                 <div class="button-group">
-                    <a href="assign_reviewers.php" class="btn-back">
-                        <i class="fa-solid fa-arrow-right"></i>
-                        تراجع
-                    </a>
-                    <button type="submit" name="assign_reviewer" class="btn-submit">
-                        <i class="fa-solid fa-check"></i>
-                        تأكيد الإسناد
-                    </button>
+                    <a href="assign_reviewers.php" class="btn-back"><i class="fa-solid fa-arrow-right"></i> عودة للقائمة</a>
                 </div>
-            </form>
+            <?php else: ?>
+                <h3 style="color: var(--primary-base); margin-top: 0; margin-bottom: 18px; font-size: 1.1rem; font-weight: 800;">
+                    <i class="fa-solid fa-user-plus" style="color: var(--accent-base); margin-left:8px;"></i>
+                    اختيار مراجع جديد للبحث
+                </h3>
+
+                <form action="submit_assignment.php" method="POST">
+                    <input type="hidden" name="application_id" value="<?= $app['id'] ?>">
+
+                    <div class="form-group">
+                        <label class="form-label" for="reviewer_id">المراجع المتخصص المتاح</label>
+                        <select name="reviewer_id" id="reviewer_id" required class="form-select irb-select">
+                            <option value="">-- اختر مراجع من القائمة --</option>
+                            <?php foreach ($reviewers as $rev): ?>
+                                <option value="<?= $rev['id'] ?>">أ.د. <?= htmlspecialchars($rev['full_name']) ?> | <?= htmlspecialchars($rev['department'] ?? '') ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; background: var(--primary-light); padding: 8px; border-radius: 4px;">
+                            <i class="fa-solid fa-info-circle"></i>
+                            عند التأكيد، سيتم إرسال تنبيه للمراجع وسيكون أمامه 48 ساعة لقبول أو رفض الطلب.
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <a href="assign_reviewers.php" class="btn-back"><i class="fa-solid fa-arrow-right"></i> تراجع</a>
+                        <button type="submit" name="assign_reviewer" class="btn-submit"><i class="fa-solid fa-check"></i> تأكيد الإسناد</button>
+                    </div>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </body>
