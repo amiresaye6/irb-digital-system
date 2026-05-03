@@ -17,6 +17,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 ?>
 
+<!-- Mobile Menu Button -->
 <div class="mobile-menu-btn" id="mobileMenuBtn">
     <i class="fa-solid fa-bars"></i>
 </div>
@@ -47,6 +48,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span>لوحة التحكم</span>
             </a>
         </li>
+
         <!-- Student Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
             <?php
@@ -241,20 +243,41 @@ if (session_status() === PHP_SESSION_NONE) {
         <?php endif; ?>
     </ul>
 
+    <!-- Updated Sidebar Footer -->
     <div class="sidebar-footer">
         <div class="user-info">
             <i class="fa-solid fa-user-circle"></i>
-            <?php if(isset($_SESSION['role']) && $_SESSION['role'] !== 'admin'): ?>
-                <a href="/irb-digital-system/includes/profile.php" class="user-name" style="text-decoration: none;" title="الملف الشخصي"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8')) : 'المستخدم' ?></a>
-            <?php else:?>
-                <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8'))  : 'المستخدم' ?></span>
-            <?php endif; ?>
+            <div class="user-details">
+                <?php if(isset($_SESSION['role']) && $_SESSION['role'] !== 'admin'): ?>
+                    <a href="/irb-digital-system/includes/profile.php" class="user-name" style="text-decoration: none;" title="الملف الشخصي"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8')) : 'المستخدم' ?></a>
+                <?php else:?>
+                    <span class="user-name"><?= isset($_SESSION['full_name']) ? htmlspecialchars(mb_substr($_SESSION['full_name'], 0, 20, 'UTF-8'))  : 'المستخدم' ?></span>
+                <?php endif; ?>
+                
+                <!-- Descriptive Logout Button -->
+                <a href="javascript:void(0)" class="logout-link" id="logoutTrigger">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>تسجيل الخروج</span>
+                </a>
+            </div>
         </div>
-        <a href="/irb-digital-system/features/auth/logout.php" class="logout-btn" title="تسجيل الخروج">
-            <i class="fa-solid fa-right-from-bracket"></i>
-        </a>
     </div>
 </aside>
+
+<!-- Logout Confirmation Modal -->
+<div class="logout-modal" id="logoutModal">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <i class="fa-solid fa-circle-question"></i>
+        </div>
+        <h3>تأكيد تسجيل الخروج</h3>
+        <p>هل أنت متأكد أنك تريد مغادرة النظام؟</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" id="cancelLogout">إلغاء</button>
+            <a href="/irb-digital-system/features/auth/logout.php" class="btn-confirm">تسجيل الخروج</a>
+        </div>
+    </div>
+</div>
 
 <style>
     .sidebar {
@@ -348,29 +371,12 @@ if (session_status() === PHP_SESSION_NONE) {
         overflow: hidden;
     }
 
-    .sidebar .sidebar-menu li .menu-link::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, rgba(26, 188, 156, 0) 0%, rgba(26, 188, 156, 0.15) 100%);
-        opacity: 0;
-        transition: opacity var(--transition-smooth);
-    }
-
     .sidebar .sidebar-menu li .menu-link i {
         font-size: 1.02rem;
         width: 18px;
         text-align: center;
         color: rgba(255, 255, 255, 0.8);
         transition: all var(--transition-smooth);
-        position: relative;
-        z-index: 1;
-    }
-
-    .sidebar .sidebar-menu li .menu-link span {
         position: relative;
         z-index: 1;
     }
@@ -389,50 +395,30 @@ if (session_status() === PHP_SESSION_NONE) {
         transform: translateX(4px);
     }
 
-    .sidebar .sidebar-menu li .menu-link:hover::before {
-        opacity: 1;
-    }
-
-    .sidebar .sidebar-menu li .menu-link.is-active::before {
-        opacity: 1;
-    }
-
-    .sidebar .sidebar-menu li .menu-link:hover span,
-    .sidebar .sidebar-menu li .menu-link.is-active span {
-        color: rgba(255, 255, 255, 0.96);
-    }
-
-    .sidebar .sidebar-menu li .menu-link:hover i {
-        color: var(--accent-base);
-        transform: scale(1.15);
-    }
-
-    .sidebar .sidebar-menu li .menu-link.is-active i {
-        color: var(--accent-base);
-        transform: scale(1.1);
-    }
-
+    /* Footer Updates */
     .sidebar-footer {
         padding: 20px 18px;
         border-top: 2px solid rgba(26, 188, 156, 0.3);
         background: linear-gradient(180deg, transparent 0%, rgba(26, 188, 156, 0.05) 100%);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
     }
 
     .user-info {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        flex: 1;
-        min-width: 0;
+        align-items: flex-start;
+        gap: 12px;
     }
 
-    .user-info i {
-        font-size: 1.6rem;
+    .user-info i.fa-user-circle {
+        font-size: 1.8rem;
         color: var(--accent-base);
         flex-shrink: 0;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
     }
 
     .user-name {
@@ -444,28 +430,112 @@ if (session_status() === PHP_SESSION_NONE) {
         white-space: nowrap;
     }
 
-    .logout-btn {
-        width: 36px;
-        height: 36px;
+    .logout-link {
         display: flex;
         align-items: center;
-        justify-content: center;
-        border-radius: var(--radius-sm);
-        background: rgba(26, 188, 156, 0.2);
-        color: var(--accent-base);
+        gap: 6px;
+        color: rgba(255, 255, 255, 0.6);
         text-decoration: none;
-        transition: all var(--transition-smooth);
-        flex-shrink: 0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
 
-    .logout-btn:hover {
-        background: var(--accent-base);
+    .logout-link:hover {
+        color: #ff7675;
+    }
+
+    .logout-link i {
+        font-size: 0.85rem;
+    }
+
+    /* Logout Modal Styling */
+    .logout-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .logout-modal.is-visible {
+        display: flex;
+    }
+
+    .modal-content {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 380px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        animation: modalScaleUp 0.25s ease-out;
+    }
+
+    @keyframes modalScaleUp {
+        from { transform: scale(0.85); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon {
+        font-size: 3rem;
+        color: #ff7675;
+        margin-bottom: 15px;
+    }
+
+    .modal-content h3 {
+        color: #2d3436;
+        margin-bottom: 10px;
+        font-size: 1.25rem;
+    }
+
+    .modal-content p {
+        color: #636e72;
+        margin-bottom: 25px;
+        font-size: 0.95rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .btn-confirm, .btn-cancel {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: none;
+        flex: 1;
+    }
+
+    .btn-confirm {
+        background: #ff7675;
         color: white;
-        transform: scale(1.1);
     }
 
-    .logout-btn i {
-        font-size: 1.1rem;
+    .btn-confirm:hover {
+        background: #d63031;
+    }
+
+    .btn-cancel {
+        background: #f1f2f6;
+        color: #2d3436;
+    }
+
+    .btn-cancel:hover {
+        background: #dfe4ea;
     }
 
     /* Scrollbar styling */
@@ -482,11 +552,7 @@ if (session_status() === PHP_SESSION_NONE) {
         border-radius: 3px;
     }
 
-    .sidebar::-webkit-scrollbar-thumb:hover {
-        background: var(--accent-base);
-    }
-
-    /*responsive*/
+    /* Responsive */
     .mobile-menu-btn {
         display: none;
         position: fixed;
@@ -496,7 +562,7 @@ if (session_status() === PHP_SESSION_NONE) {
         background: var(--primary-base, #1abc9c);
         color: white;
         padding: 10px 15px;
-        border-radius: var(--radius-md, 8px);
+        border-radius: 8px;
         cursor: pointer;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
@@ -520,12 +586,36 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar Toggle
         var menuBtn = document.getElementById('mobileMenuBtn');
         var sidebar = document.querySelector('.sidebar');
 
         if (menuBtn && sidebar) {
             menuBtn.addEventListener('click', function() {
                 sidebar.classList.toggle('sidebar-open');
+            });
+        }
+
+        // Logout Modal Logic
+        const logoutTrigger = document.getElementById('logoutTrigger');
+        const logoutModal = document.getElementById('logoutModal');
+        const cancelLogout = document.getElementById('cancelLogout');
+
+        if (logoutTrigger && logoutModal) {
+            logoutTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutModal.classList.add('is-visible');
+            });
+
+            cancelLogout.addEventListener('click', function() {
+                logoutModal.classList.remove('is-visible');
+            });
+
+            // Close modal when clicking background
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal) {
+                    logoutModal.classList.remove('is-visible');
+                }
             });
         }
     });

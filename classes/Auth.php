@@ -5,7 +5,7 @@ class Auth {
             session_start();
         }
         if(!isset($_SESSION['user_id'])) {
-            header("Location: /features/auth/login.php?error=must_login");
+            header("Location: /irb-digital-system/unauthorized.php");
             exit();
         }
     }
