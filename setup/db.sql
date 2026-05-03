@@ -18,6 +18,10 @@ DROP TABLE IF EXISTS sample_sizes;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS users;
 
+
+DROP EVENT IF EXISTS evt_twelve_hour_payment_cleanup;
+DROP PROCEDURE IF EXISTS  sp_cleanup_expired_payments;
+
 -- 2. Create Tables
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -153,7 +157,27 @@ CREATE TABLE logs (
 );
 
 -- Triggers for Payments
+SET GLOBAL event_scheduler = ON;
 DELIMITER //
+
+-- stord proceadure to make any unpayed link failed after 12 hours  
+
+CREATE PROCEDURE sp_cleanup_expired_payments()
+BEGIN
+    -- 1. Log the automated failure for auditing
+    INSERT INTO logs (application_id, user_id, action, type)
+    SELECT application_id, NULL, 'تم تحويل الدفع إلى فاشل تلقائياً لانتهاء صلاحية الرابط (12 ساعة)', 'system_cleanup'
+    FROM payments 
+    WHERE status = 'pending' 
+    AND created_at < NOW() - INTERVAL 12 HOUR;
+
+    -- 2. Update the status to failed
+    UPDATE payments 
+    SET status = 'failed' 
+    WHERE status = 'pending' 
+    AND created_at < NOW() - INTERVAL 12 HOUR;
+END //
+
 
 -- CREATE TRIGGER before_payments_insert
 -- BEFORE INSERT ON payments
@@ -231,6 +255,13 @@ BEGIN
 END//
 
 DELIMITER ;
+
+-- create and run the failed payments update event
+CREATE EVENT evt_twelve_hour_payment_cleanup
+ON SCHEDULE EVERY 12 HOUR
+STARTS CURRENT_TIMESTAMP
+DO
+    CALL sp_cleanup_expired_payments();
 
 -- 3. Seed Users (Password for all is: password)
 -- The hash below is standard PHP bcrypt for 'password'
@@ -379,7 +410,7 @@ INSERT INTO notifications (user_id, application_id, message, channel, is_read, e
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
 
-CREATE TABLE password_resets (
+CREATE TABLE IF NOT EXISTS password_resets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
     token VARCHAR(64) UNIQUE NOT NULL,

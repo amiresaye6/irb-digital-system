@@ -52,7 +52,8 @@ $merchant_order_id = $obj['order']['merchant_order_id'] ?? '';
 if ($merchant_order_id) {
     $paymentRecord = $db->selectWhere('payments', 'transaction_reference', $merchant_order_id);
 
-    if ($paymentRecord && $paymentRecord['status'] === 'pending') {
+    // Allowing update if not already completed (allows promote failed to completed)
+    if ($paymentRecord && $paymentRecord['status'] !== 'completed') {
         $isSuccess = $obj['success'] === true;
         $newStatus = $isSuccess ? 'completed' : 'failed';
 
@@ -73,7 +74,16 @@ if ($merchant_order_id) {
         if ($isSuccess) {
             $application_id = $paymentRecord['application_id'];
             $phase = $paymentRecord['phase'];
+            $current_pay_id = $paymentRecord['id'];
             $nextStage = ($phase === 'initial') ? 'awaiting_sample_calc' : 'under_review';
+
+            // CLEANUP: Mark any other pending attempts for this application/phase as failed
+            $cleanup_sql = "UPDATE payments SET status = 'failed' 
+                           WHERE application_id = $application_id 
+                           AND phase = '$phase' 
+                           AND id != $current_pay_id 
+                           AND status = 'pending'";
+            $db->getconn()->query($cleanup_sql);
 
             // Update application stage
             $db->updateById('applications', $application_id, [
@@ -103,7 +113,7 @@ if ($merchant_order_id) {
                     'message' => $notificationMsg,
                     'channel' => 'email'
                 ]);
-                
+
 
                 if ($nextStage === 'awaiting_sample_calc') {
                     require_once __DIR__ . '/../../classes/Applications.php';
@@ -111,7 +121,7 @@ if ($merchant_order_id) {
                     $samp_res = $db->conn->query($samp_sql);
                     if ($samp_res && $samp_res->num_rows > 0) {
                         $samplerMsg = "تم سداد رسوم التقديم المبدئية للبحث رقم ({$serialNumber}) ويحتاج الآن لحساب العينة.";
-                        while($samp = $samp_res->fetch_assoc()) {
+                        while ($samp = $samp_res->fetch_assoc()) {
                             Applications::createNotification($db->conn, $samp['id'], $application_id, $samplerMsg);
                         }
                     }

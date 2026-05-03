@@ -78,13 +78,13 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/student/pending_payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/pending_payments.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/pending_payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/pending_payments.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-hourglass-half"></i>
                     <span>المدفوعات المعلقة</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/student/payment_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/payment_history.php', '/irb-digital-system/features/student/student_research_details.php', '/irb-digital-system/features/student/update_application.php']) ? ' is-active' : '' ?>">
+                <a href="/irb-digital-system/features/student/payment_history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/student/payment_history.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-receipt"></i>
                     <span>سجل المدفوعات</span>
                 </a>
