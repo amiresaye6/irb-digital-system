@@ -23,7 +23,8 @@ $roleTranslations = [
     'manager' => 'مدير اللجنة',
     'reviewer' => 'مراجع',
     'sample_officer' => 'مسؤول عينات',
-    'student' => 'باحث'
+    'student' => 'باحث',
+    'super_admin' => 'مدير عام'
 ];
 ?>
 <!DOCTYPE html>
@@ -200,6 +201,7 @@ $roleTranslations = [
                     <option value="reviewer">مراجع</option>
                     <option value="sample_officer">مسؤول عينات</option>
                     <option value="student">باحث</option>
+                    <option value="super_admin">مدير عام</option>
                 </select>
             </div>
             
