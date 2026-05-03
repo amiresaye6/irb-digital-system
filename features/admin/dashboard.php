@@ -2,7 +2,8 @@
 require_once '../../init.php';
 
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin');
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
 
 $dbobj = new Database();
 $conn = $dbobj->getconn();
@@ -445,7 +446,16 @@ $certStats = $dashboard->getCertificateStats();
                                     <h4><?= htmlspecialchars($action['title']) ?> - رقم الطلب: <?= htmlspecialchars($action['serial']) ?></h4>
                                     <p>تاريخ التحديث الأخير: <?= date('Y/m/d H:i', strtotime($action['date'])) ?></p>
                                 </div>
+                                <?php if(!$is_super_admin): ?>
                                 <a href="<?= htmlspecialchars($action['link']) ?>" class="btn-action">اتخاذ إجراء</a>
+                                <?php else: ?>
+                            <span style="font-size:12px; color:var(--text-muted); 
+                                         background:var(--bg-page); padding:6px 12px;
+                                         border-radius:6px; font-weight:600;">
+                                <i class="fas fa-eye" style="margin-left:4px"></i>
+                                للمشاهدة فقط
+                            </span>
+                        <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>

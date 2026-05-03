@@ -1,12 +1,13 @@
-
 <?php
- 
-require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin'); 
+ require_once __DIR__ . "/../../classes/Auth.php";
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
- header("Location: /irb-digital-system/login.php"); exit;
-}
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
+
+
+// if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'super_admin'])) {
+//  header("Location: /irb-digital-system/login.php"); exit;
+// }
 require_once __DIR__ . '/../../classes/Applications.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . '/../../includes/pagination.php';

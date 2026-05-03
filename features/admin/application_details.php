@@ -1,11 +1,12 @@
 <?php
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin'); 
-
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: /irb-digital-system/login.php"); exit;
-}
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
+
+// if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'super_admin'])) {
+//     header("Location: /irb-digital-system/login.php"); exit;
+// }
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: student_researches.php"); exit;
 }
@@ -950,6 +951,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
         <!-- Actions -->
         <div class="card">
             <div class="action-area">
+                 <?php if(!$is_super_admin): ?>
                 <button type="button" class="btn-accept"
                     data-href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&serial_number=<?= $app['serial_number'] ?>&case=accept"
                     data-type="accept"
@@ -962,6 +964,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
                     onclick="openConfirmModal(this)">
                     <i class="fa-solid fa-xmark"></i> رفض
                 </button>
+                 <?php else: ?>
+            <span style="background:var(--primary-light);color:var(--primary-base);
+                         padding:10px 20px;border-radius:var(--radius-md);
+                         font-weight:700;font-size:0.9rem;
+                         display:flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-eye"></i>
+                وضع المشاهدة فقط
+            </span>
+        <?php endif; ?>
             </div>
         </div>
     </div>

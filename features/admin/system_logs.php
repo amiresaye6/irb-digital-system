@@ -3,8 +3,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 require_once __DIR__ . "/../../classes/Auth.php"; 
 
-Auth::checkRole(['admin']);
-
+// Auth::checkRole(['admin']);
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
 require_once '../../init.php';
 require_once '../../includes/irb_helpers.php';
 require_once '../../includes/pagination.php';
