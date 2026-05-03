@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS documents;
 DROP TABLE IF EXISTS sample_sizes;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS password_resets;
 
 -- 2. Create Tables
 CREATE TABLE users (
@@ -97,7 +98,10 @@ CREATE TABLE reviews (
     application_id INT,
     reviewer_id INT,
     assigned_by INT,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assignment_status ENUM('awaiting_acceptance','accepted','refused','timed_out') DEFAULT 'awaiting_acceptance',
     decision ENUM('pending','approved','needs_modification','rejected') DEFAULT 'pending',
+    refusal_reason TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     reviewed_at TIMESTAMP NULL,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewer_id) REFERENCES users(id),
@@ -318,25 +322,36 @@ INSERT INTO payments (application_id, phase, amount, provider, transaction_refer
 (4, 'sample', 400.00, 'Fawry', 'FW4002', '511625007', 'completed', '{"message": "Approved"}', '2026-02-25 10:00:00', '2026-02-25 09:50:00'),
 (5, 'initial', 500.00, 'Paymob', 'PM5001', '511676577', 'pending', NULL, NULL, '2026-04-23 19:43:43');
 
--- 8. Seed Reviews
-INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision, reviewed_at) VALUES 
-(1, 8, 5, 'approved', '2026-03-10 10:00:00'),
-(1, 9, 5, 'approved', '2026-03-11 14:00:00'),
-(2, 10, 5, 'needs_modification', '2026-04-18 09:00:00'),
-(2, 8, 5, 'pending', NULL),
-(4, 9, 5, 'rejected', '2026-02-28 12:00:00'),
-(8, 8, 5, 'approved', '2026-01-25 10:00:00'),
-(8, 10, 5, 'approved', '2026-01-26 12:00:00'),
-(9, 9, 5, 'pending', NULL),
-(9, 10, 5, 'pending', NULL),
-(12, 8, 5, 'approved', '2026-04-23 09:00:00'),
-(12, 9, 5, 'pending', NULL),
-(13, 9, 5, 'approved', '2026-04-23 10:00:00'),
-(13, 10, 5, 'pending', NULL),
-(14, 8, 5, 'pending', NULL),
-(14, 10, 5, 'pending', NULL),
-(15, 8, 5, 'approved', '2026-04-24 09:00:00'),
-(15, 10, 5, 'approved', '2026-04-24 09:30:00');
+-- 8. Seed Reviews (Two-Pillar: assignment_status + decision)
+-- Rule: decision can only be non-'pending' if assignment_status = 'accepted'
+INSERT INTO reviews (application_id, reviewer_id, assigned_by, assignment_status, decision, reviewed_at) VALUES
+-- App 1: Both accepted & approved (resulted in certificate)
+(1, 8, 5, 'accepted', 'approved', '2026-03-10 10:00:00'),
+(1, 9, 5, 'accepted', 'approved', '2026-03-11 14:00:00'),
+-- App 2: One needs modification, one still awaiting acceptance
+(2, 10, 5, 'accepted', 'needs_modification', '2026-04-18 09:00:00'),
+(2, 8, 5, 'awaiting_acceptance', 'pending', NULL),
+-- App 4: One rejected, one refused the assignment
+(4, 9, 5, 'accepted', 'rejected', '2026-02-28 12:00:00'),
+(4, 10, 5, 'refused', 'pending', NULL),
+-- App 8: Both accepted & approved (resulted in certificate)
+(8, 8, 5, 'accepted', 'approved', '2026-01-25 10:00:00'),
+(8, 10, 5, 'accepted', 'approved', '2026-01-26 12:00:00'),
+-- App 9: Both awaiting acceptance
+(9, 9, 5, 'awaiting_acceptance', 'pending', NULL),
+(9, 10, 5, 'awaiting_acceptance', 'pending', NULL),
+-- App 12: One approved, one awaiting acceptance
+(12, 8, 5, 'accepted', 'approved', '2026-04-23 09:00:00'),
+(12, 9, 5, 'awaiting_acceptance', 'pending', NULL),
+-- App 13: One approved, one accepted but pending decision
+(13, 9, 5, 'accepted', 'approved', '2026-04-23 10:00:00'),
+(13, 10, 5, 'accepted', 'pending', NULL),
+-- App 14: Both accepted, both pending decision
+(14, 8, 5, 'accepted', 'pending', NULL),
+(14, 10, 5, 'accepted', 'pending', NULL),
+-- App 15: Both accepted & approved
+(15, 8, 5, 'accepted', 'approved', '2026-04-24 09:00:00'),
+(15, 10, 5, 'accepted', 'approved', '2026-04-24 09:30:00');
 
 -- 8b. Seed Review Comments (review_id maps to review insertion order above)
 INSERT INTO review_comments (review_id, comment, created_at) VALUES 

@@ -455,8 +455,29 @@ $assignments = $reviewsObj->getReviewerAssignments($reviewer_id);
             الأبحاث المسندة للتحكيم
         </h2>
         <p class="page-subtitle">
-            قائمة بجميع الأبحاث التي تم إسنادها إليك للمراجعة والتقييم. يتم إخفاء بيانات الباحث لضمان حيادية التحكيم.
+            قائمة بجميع الأبحاث التي <strong>قبلت</strong> مراجعتها وهي في قائمة عملك النشطة. يتم إخفاء بيانات الباحث لضمان حيادية التحكيم.
         </p>
+
+        <?php
+        // Show pending assignments notification
+        $pendingCount = count($reviewsObj->getPendingAssignments($reviewer_id));
+        if ($pendingCount > 0):
+        ?>
+        <div style="background: linear-gradient(135deg, #fff8e1, #fffde7); border: 1.5px solid #f59e0b; border-radius: var(--radius-lg); padding: 14px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: #fef3c7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fa-solid fa-bell" style="color: #d97706; font-size: 1.1rem;"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; color: #92400e; font-size: 0.95rem;">لديك <?= $pendingCount ?> طلب إسناد بانتظار ردك</div>
+                    <div style="font-size: 0.82rem; color: #b45309; margin-top: 2px;">يرجى مراجعة الطلبات المعلقة والرد بالقبول أو الاعتذار.</div>
+                </div>
+            </div>
+            <a href="pending_assignments.php" style="background: #f59e0b; color: white; padding: 9px 18px; border-radius: 10px; text-decoration: none; font-weight: 800; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
+                <i class="fa-solid fa-inbox"></i> عرض الطلبات المعلقة
+            </a>
+        </div>
+        <?php endif; ?>
 
         <div class="toolbar-card">
             <div class="toolbar-meta" style="grid-column: 1 / -1;">
