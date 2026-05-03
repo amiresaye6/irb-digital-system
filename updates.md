@@ -62,7 +62,7 @@
 - **Task: Public Verification Portal**
   - **Description:** Build a **Public Route** (no login required) where anyone can enter a `certificate_id` or scan a **QR Code**.
   - **Functionality:** This page simply returns: `Valid/Invalid`, `Student Name`, `Research Title`, and `Issue Date`.
-- **Task: Super Admin "God View" Dashboard**
+- **Task: Super Admin "Eye bird View" Dashboard**
   - **Description:** A massive analytics suite. Filter all researches by:
     - **Specialty/Department.**
     - **Status** (Who is late? Who is stuck in payment?).
