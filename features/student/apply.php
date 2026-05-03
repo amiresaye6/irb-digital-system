@@ -202,6 +202,50 @@ $data = $_SESSION['form_data'] ?? [];
             box-shadow: 0 0 0 3px var(--accent-light);
         }
 
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .step-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-next, .btn-prev {
+            background-color: var(--accent-base);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            flex: 1;
+        }
+
+        .btn-prev {
+            background-color: var(--primary-base);
+        }
+
+        .btn-next:hover, .btn-prev:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-prev:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-next:hover {
+            background-color: var(--accent-dark);
+        }
+
         @media (max-width: 1000px) {
             body {
                 margin-right: 0; 
@@ -249,6 +293,9 @@ $data = $_SESSION['form_data'] ?? [];
 
     <form action="saveData.php" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="form_source" value="apply_research_form">
+        
+        <!-- Step 1: البيانات الأساسية -->
+        <div id="step1" class="form-step active">
         <div class="grid-container">
             <div class="field-group full-width">
                 <label>عنوان البحث</label>
@@ -332,6 +379,16 @@ $data = $_SESSION['form_data'] ?? [];
                 <input type="hidden" name="co_investigators" id="co_investigators_hidden"
                        value="<?= htmlspecialchars($data['co_investigators'] ?? '') ?>">
             </div>
+        </div>
+
+        <div class="step-buttons">
+            <button type="button" class="btn-next" onclick="goToStep2()">التالي</button>
+        </div>
+        </div>
+
+        <!-- Step 2: رفع الملفات -->
+        <div id="step2" class="form-step">
+        <div class="grid-container">
             
             <!--div class="file-input-wrapper">
                 <label>ملف البحث (Research)</label>
@@ -382,10 +439,27 @@ $data = $_SESSION['form_data'] ?? [];
             </div>
         </div>
 
-        <button type="submit" class="btn-submit">إرسال الطلب للمراجعة</button>
+        <div class="step-buttons">
+            <button type="button" class="btn-prev" onclick="goToStep1()">السابق</button>
+            <button type="submit" class="btn-submit">إرسال الطلب للمراجعة</button>
+        </div>
+        </div>
+
     </form>
 </div>
 <script>
+function goToStep2() {
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function goToStep1() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+    window.scrollTo(0, 0);
+}
+
 function addInvestigatorRow() {
     const wrapper = document.getElementById("coInvestigatorsWrapper");
 
