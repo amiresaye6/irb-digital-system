@@ -18,6 +18,7 @@ $documents = $appObj->getApplicationDocuments($app_id);
 $feedback = $appObj->getReviewerFeedback($app_id);
 $sample = $appObj->getSampleSize($app_id);
 $needsMod = $appObj->hasNeedsModification($app_id);
+$keywords = $appObj->getApplicationKeywords($app_id);
 
 $coInvestigators = [];
 if (!empty($app['co_investigators'])) {
@@ -205,6 +206,13 @@ $success_msg = $_GET['success'] ?? null;
                 <div class="info-group"><span class="info-label">رقم الملف</span><span class="badge-serial"><?= htmlspecialchars($app['serial_number']) ?></span></div>
                 <div class="info-group"><span class="info-label">تاريخ التقديم</span><div class="info-value"><i class="fa-regular fa-calendar" style="color:var(--accent-base)"></i> <?= htmlspecialchars(irb_format_arabic_date($app['created_at'])) ?></div></div>
                 <div class="info-group wide-group"><span class="info-label">عنوان البحث</span><div class="info-value"><i class="fa-solid fa-book" style="color:var(--accent-base)"></i> <?= htmlspecialchars($app['title']) ?></div></div>
+                <div class="info-group"><span class="info-label">الكلمات المفتاحية</span><div class="info-value">
+                <ul class="details-list">    
+                <?php foreach ($keywords as $keyword): ?>
+                        <li><i class="fa-solid fa-tag"> <?= htmlspecialchars($keyword) ?></i>
+                <?php endforeach; ?>
+                </ul>
+                </div></div>
                 <div class="info-group"><span class="info-label">الباحث الرئيسي</span><div class="info-value"><i class="fa-solid fa-user-doctor" style="color:var(--primary-base)"></i> <?= htmlspecialchars($app['principal_investigator']) ?></div></div>
                 <div class="info-group"><span class="info-label">الكلية / القسم</span><div class="info-value"><i class="fa-solid fa-building-columns" style="color:var(--primary-base)"></i> <?= !empty($app['faculty']) ? htmlspecialchars($app['faculty']) : 'غير متوفر' ?> — <?= !empty($app['department']) ? htmlspecialchars($app['department']) : '' ?></div></div>
                 <?php if ($sample): ?>

@@ -66,6 +66,15 @@ CREATE TABLE sample_sizes (
     FOREIGN KEY (sampler_id) REFERENCES users(id)
 );
 
+Create TABLE keywords (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT,
+    serial_number VARCHAR(20),
+    keyword VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+);
+
 CREATE TABLE documents (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT,

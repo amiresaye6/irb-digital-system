@@ -70,6 +70,21 @@ class Applications {
         return $docs;
     }
 
+    public function getApplicationKeywords($application_id) {
+        $sql = "SELECT keyword FROM Keywords WHERE application_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $application_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $keywords = [];
+        while ($row = $result->fetch_assoc()) {
+            $keywords[] = $row['keyword'];
+        }
+        return $keywords;
+    }
+
+    
+
     public function getReviewerFeedback($application_id) {
         $sql = "SELECT r.id as review_id, r.decision, r.reviewed_at, rc.comment, rc.created_at as comment_date
                 FROM reviews r 

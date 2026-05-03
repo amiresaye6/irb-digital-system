@@ -422,7 +422,7 @@ $applications = $appObj->getApplicationsByStatus('pending_admin');
                     </tr></thead>
                     <tbody id="applicationsTableBody">
                         <?php if (empty($applications)): ?>
-                            <tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p style="font-weight:700;font-size:1.05rem;">لا توجد أبحاث مقدمة</p><p style="font-size:0.9rem;">ابدأ بتقديم بحث جديد من القائمة الجانبية.</p></div></td></tr>
+                            <tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p style="font-weight:700;font-size:1.05rem;">لا توجد أبحاث مقدمة</p><p style="font-size:0.9rem;"></p></div></td></tr>
                         <?php else: ?>
                             <?php foreach ($applications as $app):
                                 $stage = $stageLabels[$app['current_stage']] ?? ['غير معروف', 'fa-question', 'pending'];

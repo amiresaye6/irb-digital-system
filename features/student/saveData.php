@@ -13,22 +13,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_source']) && $_PO
     // Validation
     if (empty($_POST['title'])) {
         array_push($errors, "عنوان البحث فارغ");
-    } elseif (strlen($_POST['title']) < 3) {
+    } elseif (mb_strlen($_POST['title']) < 3) {
         array_push($errors, "عنوان البحث لا يمكن أن يكون أقل من 3 حروف");
-    } elseif (strlen($_POST['title']) > 80) {
+    } elseif (mb_strlen($_POST['title']) > 80) {
         array_push($errors, "عنوان البحث لا يمكن أن يكون أكثر من 80 حرف");
     }
 
     if (empty($_POST['principal_investigator'])) {
         array_push($errors, "حقل اسم الباحث الرئيسي فارغ");
-    } elseif (strlen($_POST['principal_investigator']) < 3) {
+    } elseif (mb_strlen($_POST['principal_investigator']) < 3) {
         array_push($errors, "اسم الباحث الرئيسي لا يمكن أن يكون أقل من 3 حروف");
-    } elseif (strlen($_POST['principal_investigator']) > 80) {
+    } elseif (mb_strlen($_POST['principal_investigator']) > 80) {
         array_push($errors, "اسم الباحث الرئيسي لا يمكن أن يكون أكثر من 80 حرف");
     }
 
     if (empty($_POST['co_investigators'])) {
         array_push($errors, "حقل المشاركين في البحث فارغ");
+    }
+
+    $keywords_array = [];
+    if (empty($_POST['keywords'])) {
+        array_push($errors, "حقل الكلمات المفتاحية فارغ");
+    }else{
+        $keywords_array = array_values(
+            array_filter(
+                array_map('trim', explode(',', $_POST['keywords']))
+            )
+        );
+        if (count($keywords_array) < 5) {
+            array_push($errors, "يجب إدخال 5 كلمات مفتاحية على الأقل");
+        }
     }
 
     $allowed_types = [
@@ -93,7 +107,7 @@ $co_investigators_json = json_encode($co_investigators_array, JSON_UNESCAPED_UNI
 
     $last_id       = $database->conn->insert_id;
     $year          = date("Y");
-    $serial_number = "IRB-$year-" . str_pad($last_id, 3, "0", STR_PAD_LEFT);
+    $serial_number = "IRB-$year-" . str_pad($last_id, 5, "0", STR_PAD_LEFT);
 
     $updateSql  = "UPDATE applications SET serial_number = ? WHERE id = ?";
     $updateStmt = $database->conn->prepare($updateSql);
@@ -101,6 +115,13 @@ $co_investigators_json = json_encode($co_investigators_array, JSON_UNESCAPED_UNI
     $updateStmt->execute();
     $updateStmt->close();
 
+    foreach ($keywords_array as $keyword) {
+        $sql  = "INSERT INTO Keywords (application_id,serial_number, keyword) VALUES (?, ?, ?)";
+        $stmt = $database->conn->prepare($sql);
+        $stmt->bind_param("iss", $last_id, $serial_number, $keyword);
+        $stmt->execute();
+        $stmt->close();
+    }
 
 
 
@@ -127,8 +148,8 @@ $co_investigators_json = json_encode($co_investigators_array, JSON_UNESCAPED_UNI
             $db_path         = $documents_dir_db . $last_id . "_" . $field_name . "_" . $file_name;
         }
 
-        move_uploaded_file($_FILES[$field_name]["tmp_name"], $abs_destination); // الرفع بالمسار الكامل
-        $docStmt->bind_param("iss", $last_id, $field_name, $db_path);           // الداتابيز بالمسار القصير
+        move_uploaded_file($_FILES[$field_name]["tmp_name"], $abs_destination); 
+        $docStmt->bind_param("iss", $last_id, $field_name, $db_path);
         $docStmt->execute();
     };
 

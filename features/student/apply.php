@@ -255,6 +255,42 @@ $data = $_SESSION['form_data'] ?? [];
                 <input type="text" name="title" value="<?= htmlspecialchars($data['title'] ?? '') ?>" minlength="3" maxlength="80" required placeholder="اكتب هنا عنوان البحث الكامل">
             </div>
 
+            <!--div class="field-group full-width">
+                <label>الكلمات المفتاحية مفصولين بفاصلة (حد أدنى 5 كلمات) </label>
+                <input type="text" name="keywords" placeholder="مثال : انزلاق غضروفى , قطنية , عرق النسا , اسفل الظهر , سقوط القدم" value="<?= htmlspecialchars($data['keywords'] ?? '') ?>" minlength="3" required>
+            </div-->
+            <div class="field-group full-width">
+                <label>الكلمات المفتاحية (الحد الأدنى 5 كلمات)</label>
+
+                <div id="keywordsWrapper">
+                    <div class="keyword-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <input type="text" class="keyword-input" placeholder="كلمة مفتاحية 1" required style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+                        <div style="width:45px;"></div>
+                    </div>
+                    <div class="keyword-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <input type="text" class="keyword-input" placeholder="كلمة مفتاحية 2" required style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+                        <div style="width:45px;"></div>
+                    </div>
+                    <div class="keyword-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <input type="text" class="keyword-input" placeholder="كلمة مفتاحية 3" required style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+                        <div style="width:45px;"></div>
+                    </div>
+                    <div class="keyword-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <input type="text" class="keyword-input" placeholder="كلمة مفتاحية 4" required style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+                        <div style="width:45px;"></div>
+                    </div>
+                    <div class="keyword-row" style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <input type="text" class="keyword-input" placeholder="كلمة مفتاحية 5" required style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+                        <button type="button" onclick="addKeywordRow()" style="width:45px; height:45px; border:none; border-radius:50%; background:var(--accent-base); color:#fff; font-size:22px; cursor:pointer;">
+                            +
+                        </button>
+                        
+                    </div>
+                </div>
+
+                <input type="hidden" name="keywords" id="keywords_hidden" value="<?= htmlspecialchars($data['keywords'] ?? '') ?>">
+            </div>
+
             <div class="field-group full-width">
                 <label>اسم الباحث الرئيسي</label>
                 <input type="text" name="principal_investigator" value="<?= htmlspecialchars($data['principal_investigator'] ?? '') ?>" minlength="3" maxlength="80" required>
@@ -400,8 +436,51 @@ function buildCoInvestigators() {
     document.getElementById("co_investigators_hidden").value = result.join(",");
 }
 
+function addKeywordRow() {
+    const wrapper = document.getElementById("keywordsWrapper");
+
+    const row = document.createElement("div");
+    row.className = "keyword-row";
+    row.style.cssText = "display:flex; gap:10px; margin-bottom:10px; align-items:center;";
+
+    row.innerHTML = `
+        <input type="text" class="keyword-input" placeholder="كلمة مفتاحية إضافية" required style="flex:1; padding:12px; border:1px solid var(--border-light); border-radius:var(--radius-md);">
+        <button type="button" onclick="removeKeywordRow(this)" style="width:45px; height:45px; border:none; border-radius:50%; background:#dc3545; color:#fff; font-size:20px; cursor:pointer;">
+            ×
+        </button>
+    `;
+
+    wrapper.appendChild(row);
+}
+
+function removeKeywordRow(btn) {
+    btn.parentElement.remove();
+    buildKeywords();
+}
+
+function buildKeywords() {
+    const inputs = document.querySelectorAll(".keyword-input");
+    let result = [];
+
+    inputs.forEach(input => {
+        const val = input.value.trim();
+        if (val !== "") {
+            result.push(val);
+        }
+    });
+
+    document.getElementById("keywords_hidden").value = result.join(",");
+}
+
+document.addEventListener("input", function(e){
+    if(e.target.classList.contains("keyword-input")){
+        buildKeywords();
+    }
+});
+
 document.querySelector("form").addEventListener("submit", function () {
     buildCoInvestigators();
+    buildKeywords();
 });
 
 document.addEventListener("input", function(e){

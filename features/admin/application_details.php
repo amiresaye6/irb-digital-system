@@ -1,7 +1,7 @@
 <?php
+require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . "/../../classes/Auth.php";
 Auth::checkRole('admin'); 
-
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: /irb-digital-system/login.php"); exit;
@@ -22,7 +22,49 @@ if (!$app) { die("البحث غير موجود أو لا تملك صلاحية �
 $documents = $appObj->getApplicationDocuments($app_id);
 $feedback = $appObj->getReviewerFeedback($app_id);
 $sample = $appObj->getSampleSize($app_id);
+$keywords = $appObj->getApplicationKeywords($app_id);
 
+// similar researches by keywords
+$similar_applications = [];
+if (!empty($keywords)) {
+    $database = new Database();
+    $dbConnection = null;
+    $dbConnection = $database->conn;
+    
+    if ($dbConnection) {
+        $escaped_keywords = array_map(function($kw) use ($dbConnection) {
+            return "'" . mysqli_real_escape_string($dbConnection, trim($kw)) . "'";
+        }, $keywords);
+        
+        $kw_list = implode(',', $escaped_keywords);
+        $current_app_id = intval($app_id);
+        
+        $simQuery = "
+            SELECT a.id, a.student_id, a.title, a.serial_number, COUNT(k.keyword) as match_count
+            FROM applications a
+            JOIN Keywords k ON a.id = k.application_id
+            WHERE k.keyword IN ($kw_list) AND a.id != $current_app_id
+            GROUP BY a.id, a.title, a.serial_number
+            ORDER BY match_count DESC
+        ";
+
+        
+        $simResult = $dbConnection->query($simQuery);
+        if ($simResult) {
+            $total_keywords = count($keywords);
+            while ($row = $simResult->fetch_assoc()) {
+                $similarity_percentage = ($row['match_count'] / $total_keywords) * 100;
+                
+                if ($similarity_percentage > 50) { 
+                    $row['similarity_score'] = round($similarity_percentage, 2);
+                    $similar_applications[] = $row;
+                }
+            }
+        }
+    }
+}
+
+// Co-investigators parsing
 $coInvestigators = [];
 if (!empty($app['co_investigators'])) {
     $decoded = json_decode($app['co_investigators'], true);
@@ -54,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
     header("Location: " . $_POST['redirect_href']);
     exit;
 }
+
+
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -891,6 +935,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
                     <?php if (!empty($coInvestigators)): ?><ul class="details-list"><?php foreach ($coInvestigators as $ci): ?><li><i class="fa-solid fa-user"></i> <?= htmlspecialchars($ci) ?></li><?php endforeach; ?></ul>
                     <?php else: ?><div class="details-empty">لا يوجد باحثون مشاركون</div><?php endif; ?>
                 </div>
+                    <div class="info-group wide-group"><span class="info-label">كلمات مفتاحية</span>
+                    <?php if (!empty($keywords)): ?><ul class="details-list"><?php foreach ($keywords as $kw): ?><li><i class="fa-solid fa-tag"></i> <?= htmlspecialchars($kw) ?></li><?php endforeach; ?></ul>
+                    <?php else: ?><div class="details-empty">لا توجد كلمات مفتاحية</div><?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -946,8 +994,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
+        <!--related applications-->
+        <div class="card">
+            <div class="card-header"><i class="fa-solid fa-copy"></i><h3>أبحاث مشابهة (تطابق الكلمات المفتاحية)</h3></div>
 
+            <?php if (!empty($similar_applications)): ?>
+                <div style="overflow-x: auto; margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                        <thead>
+                            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+                                <th style="padding: 12px; font-weight: 600;">رقم الملف</th>
+                                <th style="padding: 12px; font-weight: 600;">عنوان البحث</th>
+                                <th style="padding: 12px; font-weight: 600; text-align: center;">نسبة التطابق</th>
+                                <th style="padding: 12px; font-weight: 600; text-align: center;">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($similar_applications as $sim_app): ?>
+                            <tr style="border-bottom: 1px solid #e9ecef;">
+                                <td style="padding: 12px; font-weight: bold;"><?= htmlspecialchars($sim_app['serial_number']) ?></td>
+                                <td style="padding: 12px;"><?= htmlspecialchars($sim_app['title']) ?></td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <span style="background: var(--primary-base, #3498db); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">
+                                        <?= $sim_app['similarity_score'] ?>%
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <a href="application_details.php?id=<?= $sim_app['id'] ?>&student_id=<?= $sim_app['student_id'] ?> "target="_blank" 
+                                       style="background: #2c3e50; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; display: inline-block; font-size: 0.85rem; font-family: inherit;">
+                                        <i class="fa-solid fa-eye"></i> عرض
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="no-docs" style="padding: 30px; text-align: center; color: #7f8c8d;">
+                    <i class="fa-solid fa-file-circle-xmark" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>لا توجد أبحاث مشابهة تتطابق مع الكلمات المفتاحية لهذا البحث.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+            
         <!-- Actions -->
+         <?php if ($app['current_stage']=='pending_admin'): ?>
         <div class="card">
             <div class="action-area">
                 <button type="button" class="btn-accept"
@@ -964,6 +1056,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
                 </button>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <script>
