@@ -22,6 +22,9 @@ DROP TABLE IF EXISTS users;
 DROP EVENT IF EXISTS evt_twelve_hour_payment_cleanup;
 DROP PROCEDURE IF EXISTS  sp_cleanup_expired_payments;
 
+DROP EVENT IF EXISTS evt_48hr_review_timeout;
+DROP PROCEDURE IF EXISTS  sp_cleanup_expired_reviews;
+
 -- 2. Create Tables
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -101,8 +104,24 @@ CREATE TABLE reviews (
     application_id INT,
     reviewer_id INT,
     assigned_by INT,
-    decision ENUM('pending','approved','needs_modification','rejected') DEFAULT 'pending',
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assignment_status ENUM(
+        'awaiting_acceptance', 
+        'accepted', 
+        'refused', 
+        'timed_out'
+    ) DEFAULT 'awaiting_acceptance',
+
+    decision ENUM(
+        'pending', 
+        'approved', 
+        'needs_modification', 
+        'rejected'
+    ) DEFAULT 'pending',
+
+    refusal_reason TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
     reviewed_at TIMESTAMP NULL,
+    
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewer_id) REFERENCES users(id),
     FOREIGN KEY (assigned_by) REFERENCES users(id)
@@ -119,18 +138,16 @@ CREATE TABLE review_comments (
 CREATE TABLE certificates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT UNIQUE,
+    student_id INT,
     manager_id INT,
     certificate_number VARCHAR(100),
     issued_to_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     pdf_url VARCHAR(255),
     issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
-    FOREIGN KEY (manager_id) REFERENCES users(id)
+    FOREIGN KEY (manager_id) REFERENCES users(id),
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-ALTER TABLE certificates 
-ADD COLUMN student_id INT AFTER application_id,
-ADD FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE;
 
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -178,6 +195,22 @@ BEGIN
     AND created_at < NOW() - INTERVAL 12 HOUR;
 END //
 
+-- stord proceadure to for expired reviews
+CREATE PROCEDURE sp_cleanup_expired_reviews()
+BEGIN
+    -- 1. Log the timeout for auditing
+    INSERT INTO logs (application_id, user_id, action, type)
+    SELECT application_id, reviewer_id, 'تم انتهاء مهلة قبول المراجعة تلقائياً (48 ساعة)', 'system_timeout'
+    FROM reviews 
+    WHERE assignment_status = 'awaiting_acceptance' 
+    AND assigned_at < NOW() - INTERVAL 48 HOUR;
+
+    -- 2. Update the status to timed_out
+    UPDATE reviews 
+    SET assignment_status = 'timed_out' 
+    WHERE assignment_status = 'awaiting_acceptance' 
+    AND assigned_at < NOW() - INTERVAL 48 HOUR;
+END //
 
 -- CREATE TRIGGER before_payments_insert
 -- BEFORE INSERT ON payments
@@ -262,6 +295,12 @@ ON SCHEDULE EVERY 12 HOUR
 STARTS CURRENT_TIMESTAMP
 DO
     CALL sp_cleanup_expired_payments();
+
+CREATE EVENT evt_48hr_review_timeout
+ON SCHEDULE EVERY 1 HOUR
+STARTS CURRENT_TIMESTAMP
+DO
+    CALL sp_cleanup_expired_reviews();
 
 -- 3. Seed Users (Password for all is: password)
 -- The hash below is standard PHP bcrypt for 'password'
@@ -349,25 +388,17 @@ INSERT INTO payments (application_id, phase, amount, provider, transaction_refer
 (4, 'sample', 400.00, 'Fawry', 'FW4002', '511625007', 'completed', '{"message": "Approved"}', '2026-02-25 10:00:00', '2026-02-25 09:50:00'),
 (5, 'initial', 500.00, 'Paymob', 'PM5001', '511676577', 'pending', NULL, NULL, '2026-04-23 19:43:43');
 
--- 8. Seed Reviews
-INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision, reviewed_at) VALUES 
-(1, 8, 5, 'approved', '2026-03-10 10:00:00'),
-(1, 9, 5, 'approved', '2026-03-11 14:00:00'),
-(2, 10, 5, 'needs_modification', '2026-04-18 09:00:00'),
-(2, 8, 5, 'pending', NULL),
-(4, 9, 5, 'rejected', '2026-02-28 12:00:00'),
-(8, 8, 5, 'approved', '2026-01-25 10:00:00'),
-(8, 10, 5, 'approved', '2026-01-26 12:00:00'),
-(9, 9, 5, 'pending', NULL),
-(9, 10, 5, 'pending', NULL),
-(12, 8, 5, 'approved', '2026-04-23 09:00:00'),
-(12, 9, 5, 'pending', NULL),
-(13, 9, 5, 'approved', '2026-04-23 10:00:00'),
-(13, 10, 5, 'pending', NULL),
-(14, 8, 5, 'pending', NULL),
-(14, 10, 5, 'pending', NULL),
-(15, 8, 5, 'approved', '2026-04-24 09:00:00'),
-(15, 10, 5, 'approved', '2026-04-24 09:30:00');
+-- 8. Seed Reviews (Updated with Workflow State & Academic Decision)
+INSERT INTO reviews (application_id, reviewer_id, assigned_by, assigned_at, assignment_status, decision, refusal_reason, reviewed_at) VALUES 
+(1, 8, 5, '2026-03-08 09:00:00', 'accepted', 'approved', NULL, '2026-03-10 10:00:00'),
+(2, 8, 5, '2026-05-02 10:00:00', 'awaiting_acceptance', 'pending', NULL, NULL),
+(4, 9, 5, '2026-02-26 11:00:00', 'accepted', 'rejected', NULL, '2026-02-28 12:00:00'),
+(8, 8, 5, '2026-01-23 09:00:00', 'accepted', 'approved', NULL, '2026-01-25 10:00:00'),
+(9, 10, 5, '2026-05-01 14:30:00', 'refused', 'pending', 'اعتذار لضيق الوقت وضغط العمل الحالي', NULL),
+(12, 9, 5, '2026-04-20 09:00:00', 'timed_out', 'pending', NULL, NULL),
+(13, 10, 5, '2026-05-03 11:00:00', 'awaiting_acceptance', 'pending', NULL, NULL),
+(14, 8, 5, '2026-05-02 09:00:00', 'accepted', 'pending', NULL, NULL),
+(15, 10, 5, '2026-04-22 08:30:00', 'accepted', 'approved', NULL, '2026-04-24 09:30:00');
 
 -- 8b. Seed Review Comments (review_id maps to review insertion order above)
 INSERT INTO review_comments (review_id, comment, created_at) VALUES 
@@ -375,13 +406,12 @@ INSERT INTO review_comments (review_id, comment, created_at) VALUES
 (2, 'موافق. أهداف الدراسة واضحة وإقرار المرضى مستوفي الشروط.', '2026-03-11 14:00:00'),
 (3, 'يجب توضيح كيفية حماية بيانات الأطفال المشاركين في الدراسة بدقة أكبر في نموذج الموافقة المستنيرة.', '2026-04-18 09:00:00'),
 (3, 'أيضاً يُرجى مراجعة صياغة نموذج الموافقة المستنيرة ليكون أكثر وضوحاً لأولياء الأمور.', '2026-04-18 10:30:00'),
-(5, 'يوجد تضارب مصالح واضح مع الشركة المصنعة للمضاد الحيوي لم يتم الإفصاح عنه بشكل كافٍ في النماذج.', '2026-02-28 12:00:00'),
-(6, 'البروتوكول ممتاز ولا توجد أي ملاحظات أخلاقية.', '2026-01-25 10:00:00'),
-(7, 'استمارات الموافقة المستنيرة مكتوبة بلغة بسيطة ومناسبة.', '2026-01-26 12:00:00'),
-(10, 'مراجعة أولية مقبولة. البروتوكول واضح والمنهجية سليمة.', '2026-04-23 09:00:00'),
-(12, 'لا يوجد موانع أخلاقية. العينة مناسبة.', '2026-04-23 10:00:00'),
-(16, 'موافق. البحث مستوفٍ لجميع الشروط.', '2026-04-24 09:00:00'),
-(17, 'موافق. لا توجد ملاحظات.', '2026-04-24 09:30:00');
+(4, 'يوجد تضارب مصالح واضح مع الشركة المصنعة للمضاد الحيوي لم يتم الإفصاح عنه بشكل كافٍ في النماذج.', '2026-02-28 12:00:00'),
+(5, 'البروتوكول ممتاز ولا توجد أي ملاحظات أخلاقية.', '2026-01-25 10:00:00'),
+(6, 'استمارات الموافقة المستنيرة مكتوبة بلغة بسيطة ومناسبة.', '2026-01-26 12:00:00'),
+(7, 'مراجعة أولية مقبولة. البروتوكول واضح والمنهجية سليمة.', '2026-04-23 09:00:00'),
+(8, 'لا يوجد موانع أخلاقية. العينة مناسبة.', '2026-04-23 10:00:00'),
+(9, 'موافق. البحث مستوفٍ لجميع الشروط.', '2026-04-24 09:00:00');
 
 -- 9. Seed Certificates
 INSERT INTO certificates (application_id, student_id, manager_id, certificate_number, issued_to_name, pdf_url, issued_at) VALUES 

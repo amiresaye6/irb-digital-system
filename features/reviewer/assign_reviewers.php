@@ -12,6 +12,7 @@ require_once __DIR__ . '/../../includes/pagination.php';
 
 $reviewsObj = new Reviews();
 
+// The class now returns applications ordered by created_at ASC (Oldest First)
 $applications = $reviewsObj->getApplicationsUnderReview();
 ?>
 <!DOCTYPE html>
@@ -331,11 +332,16 @@ $applications = $reviewsObj->getApplicationsUnderReview();
         }
 
         .status-badge.pending {
-            color: var(--status-pending-text);
-            background: var(--status-pending-bg);
+            color: var(--text-muted);
+            background: #f0f2f5;
         }
 
-        .status-badge.assigned {
+        .status-badge.awaiting_acceptance {
+            color: #856404;
+            background: #fff3cd;
+        }
+
+        .status-badge.accepted {
             color: var(--status-approved-text);
             background: var(--status-approved-bg);
             display: inline-flex;
@@ -495,7 +501,7 @@ $applications = $reviewsObj->getApplicationsUnderReview();
             الأبحاث الجاهزة للتحكيم
         </h2>
         <p class="page-subtitle">
-            من هنا يمكنك الإطلاع على الأبحاث المؤهلة للمراجعة واختيار بحث لتعيين المراجعين المتخصصين له.
+            من هنا يمكنك تعيين مراجع متخصص لكل بحث ومتابعة حالة قبول الإسناد. الأبحاث مرتبة حسب الأقدمية لضمان العدالة في سرعة الرد.
         </p>
 
         <div class="toolbar-card">
@@ -523,12 +529,13 @@ $applications = $reviewsObj->getApplicationsUnderReview();
             <div class="filter-group">
                 <label class="filter-label" for="statusFilter">
                     <i class="fa-solid fa-filter"></i>
-                    حالة المراجعين
+                    حالة الإسناد
                 </label>
                 <select id="statusFilter" class="filter-select irb-select irb-select--compact">
                     <option value="all">الكل</option>
-                    <option value="assigned">تم التعيين</option>
                     <option value="pending">لم يتم التعيين</option>
+                    <option value="awaiting_acceptance">بانتظار الموافقة</option>
+                    <option value="accepted">تم القبول</option>
                 </select>
             </div>
 
@@ -544,12 +551,12 @@ $applications = $reviewsObj->getApplicationsUnderReview();
         <?php if(isset($_GET['status']) && $_GET['status'] == 'success'): ?>
             <div class="alert-success">
                 <i class="fa-solid fa-circle-check"></i>
-                <span>تم تعيين المراجع بنجاح!</span>
+                <span>تم تعيين المراجع بنجاح وبانتظار قبوله!</span>
             </div>
         <?php elseif(isset($_GET['status']) && $_GET['status'] == 'error'): ?>
             <div class="alert-danger">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>خطأ: تم تعيين هذا المراجع مسبقاً أو حدثت مشكلة في التعيين.</span>
+                <span>خطأ: يوجد إسناد سارٍ لهذا البحث أو حدثت مشكلة تقنية.</span>
             </div>
         <?php endif; ?>
 
@@ -563,10 +570,10 @@ $applications = $reviewsObj->getApplicationsUnderReview();
                             <th width="15%" class="sortable-header">
                                 <button type="button" id="dateSortHeader" class="sortable-button" aria-label="ترتيب حسب تاريخ التقديم">
                                     <span>تاريخ التقديم</span>
-                                    <span class="sort-direction" id="dateSortIcon"><i class="fa-solid fa-arrow-down-wide-short"></i></span>
+                                    <span class="sort-direction" id="dateSortIcon"><i class="fa-solid fa-arrow-up-wide-short"></i></span>
                                 </button>
                             </th>
-                            <th width="16%">حالة المراجعين</th>
+                            <th width="16%">حالة الإسناد</th>
                             <th width="20%">الإجراءات</th>
                         </tr>
                     </thead>
@@ -583,15 +590,17 @@ $applications = $reviewsObj->getApplicationsUnderReview();
                             </tr>
                         <?php else: ?>
                             <?php foreach ($applications as $app):
-                                $assigned = $reviewsObj->getAssignedReviewers($app['id']);
-                                $assignedCount = count($assigned);
+                                // Fetch the single active assignment logic
+                                $active = $reviewsObj->getActiveAssignment($app['id']);
+                                $statusKey = $active ? $active['assignment_status'] : 'pending';
+                                
                                 $searchBlob = strtolower(trim($app['serial_number'] . ' ' . $app['title'] . ' ' . $app['principal_investigator'] . ' ' . ($app['department'] ?? '') . ' ' . irb_format_arabic_date($app['created_at'])));
                                 $applicationDate = irb_format_arabic_date($app['created_at']);
                                 $applicationTime = irb_format_arabic_time($app['created_at']);
                             ?>
                                 <tr
                                     data-search="<?= htmlspecialchars($searchBlob, ENT_QUOTES, 'UTF-8') ?>"
-                                    data-status="<?= $assignedCount > 0 ? 'assigned' : 'pending' ?>"
+                                    data-status="<?= $statusKey ?>"
                                     data-date="<?= htmlspecialchars($app['created_at']) ?>"
                                 >
                                     <td>
@@ -620,22 +629,27 @@ $applications = $reviewsObj->getApplicationsUnderReview();
                                         </div>
                                     </td>
                                     <td>
-                                        <?php if(empty($assigned)): ?>
+                                        <?php if(!$active): ?>
                                             <span class="status-badge pending">
                                                 <i class="fa-solid fa-hourglass-end"></i>
                                                 لم يتم التعيين
                                             </span>
+                                        <?php elseif($active['assignment_status'] == 'awaiting_acceptance'): ?>
+                                            <span class="status-badge awaiting_acceptance">
+                                                <i class="fa-solid fa-clock"></i>
+                                                بانتظار: <?= htmlspecialchars($active['full_name']) ?>
+                                            </span>
                                         <?php else: ?>
-                                            <span class="status-badge assigned">
+                                            <span class="status-badge accepted">
                                                 <i class="fa-solid fa-check-circle"></i>
-                                                <span class="review-count"><?= count($assigned) ?></span>
+                                                مقبول: <?= htmlspecialchars($active['full_name']) ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <a href="assign_form.php?application_id=<?= $app['id'] ?>" class="btn-action">
-                                            <i class="fa-solid fa-user-plus"></i>
-                                            إسناد
+                                            <i class="fa-solid <?= $active ? 'fa-eye' : 'fa-user-plus' ?>"></i>
+                                            <?= $active ? 'متابعة' : 'إسناد' ?>
                                         </a>
                                     </td>
                                 </tr>
@@ -669,7 +683,7 @@ $applications = $reviewsObj->getApplicationsUnderReview();
                 noResultsRowId: 'noResultsRow',
                 paginationContainerId: 'applicationsPagination',
                 pageSize: 10,
-                defaultSort: 'desc',
+                defaultSort: 'asc',
             });
         })();
     </script>

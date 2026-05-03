@@ -10,7 +10,11 @@ class Reviews {
     }
 
     public function getApplicationsUnderReview() {
-        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, u.department, a.created_at FROM applications a JOIN users u ON a.student_id = u.id WHERE a.current_stage = 'under_review' ORDER BY a.created_at DESC";
+        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, u.department, a.created_at 
+                FROM applications a 
+                JOIN users u ON a.student_id = u.id 
+                WHERE a.current_stage = 'under_review' 
+                ORDER BY a.created_at ASC"; 
         $result = $this->db->query($sql);
         $applications = [];
         if ($result && $result->num_rows > 0) {
@@ -22,19 +26,19 @@ class Reviews {
     }
 
     public function getApplicationDetails($application_id) {
-        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, a.co_investigators, a.is_blinded, a.created_at, u.faculty, u.department FROM applications a JOIN users u ON a.student_id = u.id WHERE a.id = ?";
+        $sql = "SELECT a.id, a.serial_number, a.title, a.principal_investigator, a.co_investigators, a.is_blinded, a.created_at, u.faculty, u.department 
+                FROM applications a 
+                JOIN users u ON a.student_id = u.id 
+                WHERE a.id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $application_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        if ($result && $result->num_rows > 0) {
-            return $result->fetch_assoc();
-        }
-        return null;
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
     public function getAvailableReviewers() {
-        $sql = "SELECT id, full_name, faculty, department FROM users WHERE role = 'reviewer'";
+        $sql = "SELECT id, full_name, faculty, department FROM users WHERE role = 'reviewer' AND is_active = 1";
         $result = $this->db->query($sql);
         $reviewers = [];
         if ($result && $result->num_rows > 0) {
@@ -43,6 +47,44 @@ class Reviews {
             }
         }
         return $reviewers;
+    }
+
+    /**
+     * Get the current active assignment.
+     * Returns the reviewer only if they haven't timed out or refused.
+     */
+    public function getActiveAssignment($application_id) {
+        $sql = "SELECT r.*, u.full_name 
+                FROM reviews r 
+                JOIN users u ON r.reviewer_id = u.id 
+                WHERE r.application_id = ? 
+                AND r.assignment_status IN ('awaiting_acceptance', 'accepted')
+                LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $application_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
+    }
+
+    /**
+     * Get full history of assignments for this application (Tracking)
+     */
+    public function getAssignmentHistory($application_id) {
+        $sql = "SELECT r.*, u.full_name 
+                FROM reviews r 
+                JOIN users u ON r.reviewer_id = u.id 
+                WHERE r.application_id = ? 
+                ORDER BY r.assigned_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $application_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $history = [];
+        while ($row = $result->fetch_assoc()) {
+            $history[] = $row;
+        }
+        return $history;
     }
 
     public function getAssignedReviewers($application_id) {
@@ -59,17 +101,12 @@ class Reviews {
     }
 
     public function assignReviewer($application_id, $reviewer_id, $admin_id) {
-        $check_sql = "SELECT id FROM reviews WHERE application_id = ? AND reviewer_id = ?";
-        $check_stmt = $this->db->prepare($check_sql);
-        $check_stmt->bind_param("ii", $application_id, $reviewer_id);
-        $check_stmt->execute();
-        $check_result = $check_stmt->get_result();
-        
-        if ($check_result->num_rows > 0) {
+        if ($this->getActiveAssignment($application_id)) {
             return false;
         }
 
-        $sql = "INSERT INTO reviews (application_id, reviewer_id, assigned_by, decision) VALUES (?, ?, ?, 'pending')";
+        $sql = "INSERT INTO reviews (application_id, reviewer_id, assigned_by, assignment_status, decision) 
+                VALUES (?, ?, ?, 'awaiting_acceptance', 'pending')";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("iii", $application_id, $reviewer_id, $admin_id);
         return $stmt->execute();
