@@ -40,6 +40,9 @@ switch($user['role']) {
     case 'manager':
         header("Location: ../../features/manager/dashboard.php");
         break;
+    case 'super_admin': 
+        header("Location: ../../features/admin/dashboard.php"); 
+        break;
     default:
         header("Location: ../auth/login.php?error=invalid");
 }

@@ -278,7 +278,6 @@ unset($_SESSION['success']);
             </svg>
         </button>
     </form>
-    <!-- بعد زرار تسجيل الدخول مباشرة -->
 <div style="text-align:center;margin-top:12px;">
     <a href="forgot_password.php"
        style="color:#64748b;font-size:13px;text-decoration:none;">

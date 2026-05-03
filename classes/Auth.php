@@ -15,6 +15,7 @@ class Auth {
         if(!is_array($allowed_roles)) {
             $allowed_roles = [$allowed_roles];
         }
+         if($_SESSION['role'] === 'super_admin') return;
         if(!in_array($_SESSION['role'], $allowed_roles)) {
             header("Location: /irb-digital-system/unauthorized.php");
             exit();

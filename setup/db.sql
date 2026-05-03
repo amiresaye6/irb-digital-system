@@ -18,11 +18,10 @@ DROP TABLE IF EXISTS sample_sizes;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS password_resets;
-
 -- 2. Create Tables
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    role ENUM('student','admin','sample_officer','reviewer','manager') NOT NULL,
+    role ENUM('student','admin','sample_officer','reviewer','manager','super_admin') NOT NULL,
     full_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255),
@@ -254,7 +253,8 @@ INSERT INTO users (role, full_name, email, password_hash, national_id, phone_num
 ('student', 'د. سلمى رضا', 'salma@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234013', '01066666666', 'كلية الأسنان', 'طب الفم والأسنان', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
 ('student', 'د. ماجد توفيق', 'maged@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234014', '01077777777', 'كلية التمريض', 'تمريض باطني وجراحي', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
 ('student', 'د. سارة كمال', 'sara@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234015', '01088888888', 'كلية الطب', 'الرمد', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
-('student', 'د. أحمد مصطفى', 'ahmed@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234016', '01099999990', 'كلية الطب', 'الباطنة', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1);
+('student', 'د. أحمد مصطفى', 'ahmed@med.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '29001011234016', '01099999990', 'كلية الطب', 'الباطنة', 'uploads/seed/dummy_id_front.jpg', 'uploads/seed/dummy_id_back.jpg', 1),
+('super_admin', 'أ.د. احمد عناني', 'superAdmin@irb.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '21001011234605', '01112345699', NULL, NULL, NULL, NULL, 1);
 
 -- 4. Seed Applications
 INSERT INTO applications (student_id, serial_number, title, principal_investigator, co_investigators, current_stage, is_blinded, created_at) VALUES 

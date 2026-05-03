@@ -3,7 +3,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole(['admin']);
+// Auth::checkRole(['admin']);
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
 $db = new Database();
 
 $sql = "SELECT id, full_name, email, role, is_active, national_id, phone_number, created_at FROM users ORDER BY created_at DESC";
@@ -130,10 +132,12 @@ foreach ($allUsers as $u) {
                                 <small>Tel: <?= $u['phone_number'] ?></small>
                             </td>
                             <td><span class="phase-badge"><?= $roleTranslations[$u['role']] ?? $u['role'] ?></span></td>
+                            <?php if(!$is_super_admin): ?>
                             <td>
                                 <a href="activate_user.php?id=<?= $u['id'] ?>" class="btn-action btn-approve"><i class="fa-solid fa-check"></i> تفعيل</a>
                                 <a href="reject_user.php?id=<?= $u['id'] ?>" class="btn-action btn-reject" onclick="return confirm('هل أنت متأكد من الرفض؟')"><i class="fa-solid fa-xmark"></i> رفض</a>
                             </td>
+                            <?php endif; ?>
                         </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

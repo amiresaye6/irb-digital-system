@@ -43,6 +43,8 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="/irb-digital-system/features/manager/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard.php']) ? ' is-active' : '' ?>">
             <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'reviewer'):?>
                 <a href="/irb-digital-system/features/reviewer/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/dashboard.php']) ? ' is-active' : '' ?>">
+            <?php elseif(isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'):?>
+                <a href="/irb-digital-system/features/admin/dashboard.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/dashboard.php']) ? ' is-active' : '' ?>">
             <?php endif; ?>
             <i class="fa-solid fa-chart-line"></i>
                 <span>لوحة التحكم</span>
@@ -134,6 +136,43 @@ if (session_status() === PHP_SESSION_NONE) {
                     <span>سجل النظام</span>
                 </a>
             </li>
+        <?php endif; ?>
+        <!-- Super Admin Role Links -->
+          <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+            <li class="menu-category">
+                <span class="category-label">منطقة المشرف العام</span>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/manage_users.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/manage_users.php', '/irb-digital-system/features/admin/add_user.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>إدارة المستخدمين</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/pending_applications.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>الطلبات قيد المراجعة</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>إدارة المدفوعات</span>
+                </a>
+            </li>
+             <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/application_details.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/application_details.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>تفاصيل الطلب</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/system_logs.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/system_logs.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>سجل النظام</span>
+                </a>
+            </li>
+            
         <?php endif; ?>
 
         <!-- Sample Officer Role Links -->

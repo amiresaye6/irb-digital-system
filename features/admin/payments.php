@@ -4,8 +4,8 @@ require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . '/../../includes/pagination.php';
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole(['admin', 'manager']);
-
+Auth::checkRole(['admin', 'manager', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
 $db = new Database();
 
 // Join payments with applications and users to get the full picture

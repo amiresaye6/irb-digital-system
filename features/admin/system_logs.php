@@ -3,8 +3,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 require_once __DIR__ . "/../../classes/Auth.php"; 
 
-Auth::checkRole(['admin']);
-
+// Auth::checkRole(['admin']);
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
 require_once '../../init.php';
 require_once '../../includes/irb_helpers.php';
 require_once '../../includes/pagination.php';
@@ -22,7 +23,8 @@ $roleTranslations = [
     'manager' => 'مدير اللجنة',
     'reviewer' => 'مراجع',
     'sample_officer' => 'مسؤول عينات',
-    'student' => 'باحث'
+    'student' => 'باحث',
+    'super_admin' => 'مدير عام'
 ];
 ?>
 <!DOCTYPE html>
@@ -199,6 +201,7 @@ $roleTranslations = [
                     <option value="reviewer">مراجع</option>
                     <option value="sample_officer">مسؤول عينات</option>
                     <option value="student">باحث</option>
+                    <option value="super_admin">مدير عام</option>
                 </select>
             </div>
             

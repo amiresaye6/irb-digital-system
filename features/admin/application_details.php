@@ -1,11 +1,12 @@
 <?php
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin'); 
-
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: /irb-digital-system/login.php"); exit;
-}
+Auth::checkRole(['admin', 'super_admin']);
+$is_super_admin = ($_SESSION['role'] === 'super_admin');
+
+// if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'super_admin'])) {
+//     header("Location: /irb-digital-system/login.php"); exit;
+// }
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: student_researches.php"); exit;
 }
@@ -882,7 +883,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
                 <div class="info-group"><span class="info-label">رقم الملف</span><span class="badge-serial"><?= htmlspecialchars($app['serial_number']) ?></span></div>
                 <div class="info-group"><span class="info-label">تاريخ التقديم</span><div class="info-value"><i class="fa-regular fa-calendar" style="color:var(--accent-base)"></i> <?= htmlspecialchars(irb_format_arabic_date($app['created_at'])) ?></div></div>
                 <div class="info-group wide-group"><span class="info-label">عنوان البحث</span><div class="info-value"><i class="fa-solid fa-book" style="color:var(--accent-base)"></i> <?= htmlspecialchars($app['title']) ?></div></div>
-                <div class="info-group"><span class="info-label">الباحث الرئيسي</span><div class="info-value"><i class="fa-solid fa-user-doctor" style="color:var(--primary-base)"></i> <?= htmlspecialchars($app['principal_investigator']) ?></div></div>
+                <div class="info-group">
+                    <span class="info-label">الباحث الرئيسي</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-user-doctor" style="color:var(--primary-base)"></i> 
+                         <?php if($is_super_admin): ?>
+                            <?= htmlspecialchars($app['principal_investigator']) ?>
+                            <span style="background:#f3e8ff;color:#7c3aed;padding:2px 8px;border-radius:999px;font-size:0.75rem;font-weight:700;margin-right:6px;">
+                        <i class="fa-solid fa-crown" style="font-size:10px"></i>
+                           مرئي للمشرف
+                     </span>
+                         <?php else: ?>
+                           <?= htmlspecialchars($app['principal_investigator']) ?>
+                         <?php endif; ?>
+                    </div>
+                </div>
+
                 <div class="info-group"><span class="info-label">الكلية / القسم</span><div class="info-value"><i class="fa-solid fa-building-columns" style="color:var(--primary-base)"></i> <?= !empty($app['faculty']) ? htmlspecialchars($app['faculty']) : 'غير متوفر' ?> — <?= !empty($app['department']) ? htmlspecialchars($app['department']) : '' ?></div></div>
                 <?php if ($sample): ?>
                 <div class="info-group"><span class="info-label">حجم العينة</span><div class="info-value"><i class="fa-solid fa-chart-pie" style="color:var(--accent-base)"></i> <?= htmlspecialchars($sample['calculated_size']) ?></div></div>
@@ -950,6 +966,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
         <!-- Actions -->
         <div class="card">
             <div class="action-area">
+                 <?php if(!$is_super_admin): ?>
                 <button type="button" class="btn-accept"
                     data-href="intial_review_from_admin.php?id=<?= $app_id ?>&student_id=<?= $app_student_id ?>&serial_number=<?= $app['serial_number'] ?>&case=accept"
                     data-type="accept"
@@ -962,6 +979,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refusal_reason'], $_P
                     onclick="openConfirmModal(this)">
                     <i class="fa-solid fa-xmark"></i> رفض
                 </button>
+                 <?php else: ?>
+            <span style="background:var(--primary-light);color:var(--primary-base);
+                         padding:10px 20px;border-radius:var(--radius-md);
+                         font-weight:700;font-size:0.9rem;
+                         display:flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-eye"></i>
+                وضع المشاهدة فقط
+            </span>
+        <?php endif; ?>
             </div>
         </div>
     </div>
