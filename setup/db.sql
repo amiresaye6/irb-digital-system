@@ -21,7 +21,7 @@ DROP TABLE IF EXISTS users;
 -- 2. Create Tables
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    role ENUM('student','admin','sample_officer','reviewer','manager') NOT NULL,
+    role ENUM('student','admin','sample_officer','reviewer','manager','super_admin') NOT NULL,
     full_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255),
