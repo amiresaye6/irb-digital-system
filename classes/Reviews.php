@@ -88,7 +88,7 @@ class Reviews {
     }
 
     public function getAssignedReviewers($application_id) {
-        $sql = "SELECT r.reviewer_id as id, u.full_name, r.decision FROM reviews r JOIN users u ON r.reviewer_id = u.id WHERE r.application_id = ?";
+        $sql = "SELECT r.reviewer_id as id, u.full_name, r.decision, r.assignment_status FROM reviews r JOIN users u ON r.reviewer_id = u.id WHERE r.application_id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $application_id);
         $stmt->execute();
@@ -112,6 +112,9 @@ class Reviews {
         return $stmt->execute();
     }
 
+    /**
+     * Get reviewer's ACCEPTED assignments only (their active work queue).
+     */
     public function getReviewerAssignments($reviewer_id) {
         $sql = "
             SELECT 
@@ -123,12 +126,13 @@ class Reviews {
                 a.created_at, 
                 u.department, 
                 r.decision, 
+                r.assignment_status,
                 r.reviewed_at,
                 a.current_stage
             FROM reviews r 
             JOIN applications a ON r.application_id = a.id 
             JOIN users u ON a.student_id = u.id 
-            WHERE r.reviewer_id = ?
+            WHERE r.reviewer_id = ? AND r.assignment_status = 'accepted'
             ORDER BY a.created_at DESC
         ";
         
@@ -147,6 +151,63 @@ class Reviews {
             }
         }
         return $assignments;
+    }
+
+    
+    public function getPendingAssignments($reviewer_id) {
+        $sql = "
+            SELECT 
+                r.id as review_id,
+                a.id as application_id, 
+                a.serial_number, 
+                a.title, 
+                a.principal_investigator, 
+                a.is_blinded, 
+                a.created_at as application_date,
+                r.assigned_at,
+                u.department,
+                u2.full_name as assigned_by_name
+            FROM reviews r 
+            JOIN applications a ON r.application_id = a.id 
+            JOIN users u ON a.student_id = u.id
+            LEFT JOIN users u2 ON r.assigned_by = u2.id
+            WHERE r.reviewer_id = ? AND r.assignment_status = 'awaiting_acceptance'
+            ORDER BY r.assigned_at DESC
+        ";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $reviewer_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $assignments = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                if ($row['is_blinded'] == 1) {
+                    $row['principal_investigator'] = "معلومات محجوبة";
+                }
+                $assignments[] = $row;
+            }
+        }
+        return $assignments;
+    }
+
+  
+    public function acceptAssignment($review_id, $reviewer_id) {
+        $sql = "UPDATE reviews SET assignment_status = 'accepted' WHERE id = ? AND reviewer_id = ? AND assignment_status = 'awaiting_acceptance'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("ii", $review_id, $reviewer_id);
+        $stmt->execute();
+        return $stmt->affected_rows > 0;
+    }
+
+    
+    public function refuseAssignment($review_id, $reviewer_id, $reason) {
+        $sql = "UPDATE reviews SET assignment_status = 'refused', refusal_reason = ? WHERE id = ? AND reviewer_id = ? AND assignment_status = 'awaiting_acceptance'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("sii", $reason, $review_id, $reviewer_id);
+        $stmt->execute();
+        return $stmt->affected_rows > 0;
     }
 
     public function getApplicationDocuments($application_id) {
@@ -175,7 +236,7 @@ class Reviews {
     }
 
     public function getAllReviewsForApplication($application_id) {
-        $sql = "SELECT r.id as review_id, r.decision, r.reviewed_at, u.full_name 
+        $sql = "SELECT r.id as review_id, r.decision, r.assignment_status, r.reviewed_at, u.full_name 
                 FROM reviews r 
                 JOIN users u ON r.reviewer_id = u.id 
                 WHERE r.application_id = ? 
@@ -226,8 +287,8 @@ class Reviews {
             return ['success' => false, 'message' => 'يجب إضافة تعليقات عند الرفض أو طلب التعديل'];
         }
 
-        // Get review id
-        $rev_sql = "SELECT id FROM reviews WHERE application_id = ? AND reviewer_id = ?";
+        // Get review id — MUST be accepted assignment
+        $rev_sql = "SELECT id FROM reviews WHERE application_id = ? AND reviewer_id = ? AND assignment_status = 'accepted'";
         $rev_stmt = $this->db->prepare($rev_sql);
         $rev_stmt->bind_param("ii", $application_id, $reviewer_id);
         $rev_stmt->execute();
@@ -235,7 +296,7 @@ class Reviews {
         $review = $rev_result->fetch_assoc();
         
         if (!$review) {
-            return ['success' => false, 'message' => 'لم يتم العثور على المراجعة'];
+            return ['success' => false, 'message' => 'لم يتم العثور على المراجعة أو لم يتم قبول الإسناد بعد'];
         }
         $review_id = $review['id'];
 
@@ -253,8 +314,13 @@ class Reviews {
                 $comment_stmt->execute();
             }
             
-           // if all reviewers approved  then push notification to manager
-            $check_all = "SELECT COUNT(*) as total, SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as approved_count FROM reviews WHERE application_id = ?";
+            // Check if ALL accepted reviewers approved — then push to manager
+            // Only count 'accepted' reviews; refused/awaiting reviews are excluded
+            $check_all = "SELECT 
+                COUNT(*) as total, 
+                SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as approved_count 
+                FROM reviews 
+                WHERE application_id = ? AND assignment_status = 'accepted'";
             $ca_stmt = $this->db->prepare($check_all);
             $ca_stmt->bind_param("i", $application_id);
             $ca_stmt->execute();
@@ -265,7 +331,6 @@ class Reviews {
                 $upd_stmt = $this->db->prepare($upd_stage);
                 $upd_stmt->bind_param("i", $application_id);
                 if ($upd_stmt->execute()) {
-                    
                     require_once __DIR__ . '/Applications.php';
                     $mgr_sql = "SELECT id FROM users WHERE role = 'manager'";
                     $mgr_res = $this->db->query($mgr_sql);

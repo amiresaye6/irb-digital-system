@@ -177,6 +177,24 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة المراجع</span>
             </li>
             <li class="menu-item">
+                <?php
+                $sidebarPendingCount = 0;
+                if (isset($_SESSION['user_id'])) {
+                    if (!class_exists('Reviews')) require_once __DIR__ . '/../classes/Reviews.php';
+                    $sidebarReviews = new Reviews();
+                    $sidebarPendingAssignments = $sidebarReviews->getPendingAssignments($_SESSION['user_id']);
+                    $sidebarPendingCount = count($sidebarPendingAssignments);
+                }
+                ?>
+                <a href="/irb-digital-system/features/reviewer/pending_assignments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/pending_assignments.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-inbox"></i>
+                    <span>الأبحاث المعلقة</span>
+                    <?php if ($sidebarPendingCount > 0): ?>
+                        <span style="background:#f59e0b;color:white;padding:2px 8px;border-radius:999px;font-size:0.75rem;font-weight:800;margin-right:auto;"><?= $sidebarPendingCount ?></span>
+                    <?php endif; ?>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/features/reviewer/assigned_reserches.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/assigned_reserches.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-microscope"></i>
                     <span>الأبحاث المسندة</span>

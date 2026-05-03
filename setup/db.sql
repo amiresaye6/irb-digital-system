@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS documents;
 DROP TABLE IF EXISTS sample_sizes;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS password_resets;
 
 
 DROP EVENT IF EXISTS evt_twelve_hour_payment_cleanup;
@@ -435,7 +436,7 @@ INSERT INTO notifications (user_id, application_id, message, channel, is_read, e
 (4, 4, 'تم رفض بحثك (IRB-2026-004). يرجى مراجعة أسباب الرفض في تفاصيل البحث.', 'system', 1, 1, '2026-02-28 12:05:00'),
 (1, 1, 'تهانينا! تم اعتماد بحثك (IRB-2026-001) نهائياً وإصدار شهادة IRB.', 'system', 1, 1, '2026-03-15 10:05:00'),
 (13, 8, 'تهانينا! تم اعتماد بحثك (IRB-2026-008) نهائياً وإصدار شهادة IRB.', 'system', 0, 1, '2026-02-01 10:05:00'),
-(1, 5, 'بحثك (IRB-2026-005) بانتظار سداد رسوم التقديم الأولية.', 'system', 0, 1, '2026-04-20 17:00:00');
+(1, 5, 'بحثك (IRB-2026-005) botato chips chips botato سداد رسوم التقديم الأولية.', 'system', 0, 1, '2026-04-20 17:00:00');
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;

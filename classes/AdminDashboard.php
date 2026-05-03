@@ -168,7 +168,7 @@ class AdminDashboard
                 (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id AND decision = 'approved') as approved,
                 (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id AND decision = 'rejected') as rejected,
                 (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id AND decision = 'needs_modification') as modifications,
-                (SELECT COUNT(*) FROM reviews r JOIN applications a ON r.application_id = a.id WHERE r.reviewer_id = u.id AND r.decision = 'pending' AND a.current_stage = 'under_review') as workload,
+                (SELECT COUNT(*) FROM reviews r JOIN applications a ON r.application_id = a.id WHERE r.reviewer_id = u.id AND r.assignment_status = 'accepted' AND r.decision = 'pending' AND a.current_stage = 'under_review') as workload,
                 (SELECT AVG(DATEDIFF(reviewed_at, created_at)) FROM reviews WHERE reviewer_id = u.id AND decision != 'pending') as avg_days
             FROM users u
             WHERE u.role = 'reviewer'

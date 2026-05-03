@@ -8,9 +8,11 @@ $dbobj = new Database();
 $conn = $dbobj->getconn();
 
 require_once '../../classes/ReviewerDashboard.php';
+require_once __DIR__ . '/../../includes/irb_helpers.php';
 $dashboard = new ReviewerDashboard($conn);
 
-$reviewer_id = $_SESSION['user_id'];
+$reviewer_id   = $_SESSION['user_id'];
+$reviewer_name = $_SESSION['full_name'] ?? 'المراجع';
 
 // Get KPIs
 $kpis = $dashboard->getKPIs($reviewer_id);
@@ -129,6 +131,7 @@ $pendingResearches = $dashboard->getPendingResearches($reviewer_id);
 
         /* KPI Colors */
         .kpi-card.total::before { background: var(--primary-base); }
+        .kpi-card.awaiting::before { background: #f59e0b; }
         .kpi-card.pending::before { background: var(--warning-base); }
         .kpi-card.mod::before { background: #f39c12; }
         .kpi-card.completed::before { background: var(--success-base); }
@@ -139,6 +142,12 @@ $pendingResearches = $dashboard->getPendingResearches($reviewer_id);
             align-items: flex-start;
             margin-bottom: 20px;
         }
+
+        .kpi-card.total .kpi-icon { color: var(--primary-base); }
+        .kpi-card.awaiting .kpi-icon { color: #f59e0b; }
+        .kpi-card.pending .kpi-icon { color: var(--warning-base); }
+        .kpi-card.mod .kpi-icon { color: #f39c12; }
+        .kpi-card.completed .kpi-icon { color: var(--success-base); }
 
         .kpi-title {
             font-size: 1.1rem;
@@ -380,6 +389,12 @@ $pendingResearches = $dashboard->getPendingResearches($reviewer_id);
                     <h2><i class="fa-solid fa-user-doctor"></i> لوحة المراجع</h2>
                     <p>مرحباً بك في لوحة المراجع. هنا يمكنك متابعة المهام المسندة إليك وإحصائيات مراجعاتك.</p>
                 </div>
+                <?php if ($kpis['awaitingAcceptance'] > 0): ?>
+                <a href="pending_assignments.php" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;padding:10px 20px;border-radius:12px;text-decoration:none;font-weight:800;font-size:0.9rem;box-shadow:0 4px 12px rgba(245,158,11,0.35);">
+                    <i class="fa-solid fa-inbox"></i>
+                    <?= $kpis['awaitingAcceptance'] ?> طلب بانتظار ردك
+                </a>
+                <?php endif; ?>
             </div>
 
             <!-- KPIs Section -->
@@ -390,14 +405,25 @@ $pendingResearches = $dashboard->getPendingResearches($reviewer_id);
                         <i class="fa-solid fa-list-check kpi-icon"></i>
                     </div>
                     <p class="kpi-value"><?= number_format($kpis['totalAssigned']) ?></p>
+                    <small style="color:var(--text-muted);font-size:0.8rem;margin-top:8px;">جميع الإسنادات</small>
+                </div>
+
+                <div class="kpi-card awaiting">
+                    <div class="kpi-header">
+                        <h3 class="kpi-title">بانتظار ردك</h3>
+                        <i class="fa-solid fa-inbox kpi-icon"></i>
+                    </div>
+                    <p class="kpi-value"><?= number_format($kpis['awaitingAcceptance']) ?></p>
+                    <small style="color:#d97706;font-size:0.8rem;margin-top:8px;">طلبات لم يُرد عليها بعد</small>
                 </div>
                 
                 <div class="kpi-card pending">
                     <div class="kpi-header">
-                        <h3 class="kpi-title">أبحاث قيد الانتظار</h3>
+                        <h3 class="kpi-title">أبحاث قيد المراجعة</h3>
                         <i class="fa-solid fa-clock kpi-icon"></i>
                     </div>
                     <p class="kpi-value"><?= number_format($kpis['pendingAction']) ?></p>
+                    <small style="color:var(--text-muted);font-size:0.8rem;margin-top:8px;">مقبولة وتنتظر قرارك</small>
                 </div>
 
                 <div class="kpi-card mod">
@@ -406,6 +432,7 @@ $pendingResearches = $dashboard->getPendingResearches($reviewer_id);
                         <i class="fa-solid fa-rotate-left kpi-icon"></i>
                     </div>
                     <p class="kpi-value"><?= number_format($kpis['needsModification']) ?></p>
+                    <small style="color:var(--text-muted);font-size:0.8rem;margin-top:8px;">طُلب تعديلها</small>
                 </div>
 
                 <div class="kpi-card completed">
@@ -414,6 +441,7 @@ $pendingResearches = $dashboard->getPendingResearches($reviewer_id);
                         <i class="fa-solid fa-check-double kpi-icon"></i>
                     </div>
                     <p class="kpi-value"><?= number_format($kpis['completed']) ?></p>
+                    <small style="color:var(--text-muted);font-size:0.8rem;margin-top:8px;">موافقة أو مرفوضة</small>
                 </div>
             </div>
 
