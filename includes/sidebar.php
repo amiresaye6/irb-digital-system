@@ -255,6 +255,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="category-label">منطقة المدير</span>
             </li>
             <li class="menu-item">
+                <a href="/irb-digital-system/features/manager/upload_signature.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/upload_signature.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-file-signature"></i>
+                    <span>رفع التوقيع</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="/irb-digital-system/features/manager/dashboard2.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/dashboard2.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-stamp"></i>
                     <span>الأبحاث الجاهزة للأعتماد النهائي</span>
@@ -262,7 +268,7 @@ if (session_status() === PHP_SESSION_NONE) {
             </li>
             <li class="menu-item">
                 <a href="/irb-digital-system/features/manager/final_approvals.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/final_approvals.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-stamp"></i>
+                    <i class="fa-solid fa-circle-check"></i>
                     <span>الاعتمادات النهائية</span>
                 </a>
             </li>

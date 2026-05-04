@@ -7,6 +7,7 @@ CREATE DATABASE IF NOT EXISTS irb_system;
 USE irb_system;
 
 -- 1. Drop existing tables if they exist
+DROP TABLE IF EXISTS signatures;
 DROP TABLE IF EXISTS logs;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS certificates;
@@ -157,6 +158,21 @@ CREATE TABLE certificates (
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     FOREIGN KEY (manager_id) REFERENCES users(id),
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+ALTER TABLE certificates 
+ADD COLUMN student_id INT AFTER application_id,
+ADD FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE;
+
+
+CREATE TABLE signatures (
+    signatureId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL, 
+    signature_url VARCHAR(255) NOT NULL, 
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY (userId), 
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE notifications (
