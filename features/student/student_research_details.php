@@ -68,9 +68,10 @@ $success_msg = $_GET['success'] ?? null;
         .card-header h3{color:var(--primary-base);font-size:1.1rem;font-weight:800;margin:0}
         .card-header i{color:var(--accent-base);font-size:1.1rem}
 
-        /* Progress Timeline */
+        /* Progress Timeline — RTL: step 0 on RIGHT, last step on LEFT */
         .progress-card{padding:30px 24px 36px}
-        .progress-track{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding:14px 0 0}
+        .progress-track{display:flex;flex-direction:row;align-items:flex-start;justify-content:space-between;position:relative;padding:14px 0 0}
+        /* Base track line */
         .progress-track::before{content:'';position:absolute;top:32px;right:40px;left:40px;height:4px;background:var(--border-light);border-radius:4px;z-index:0}
         .progress-step{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;flex:1;padding:0 2px}
         .step-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;border:3px solid var(--border-light);background:white;color:var(--text-muted);transition:all 0.4s;margin-bottom:10px;position:relative}
@@ -80,7 +81,8 @@ $success_msg = $_GET['success'] ?? null;
         @keyframes pulse{0%,100%{box-shadow:0 0 0 6px rgba(26,188,156,0.2)}50%{box-shadow:0 0 0 12px rgba(26,188,156,0.08)}}
         .step-label{font-size:0.74rem;font-weight:700;color:var(--text-muted);text-align:center;line-height:1.3;max-width:95px}
         .progress-step.completed .step-label,.progress-step.active .step-label{color:var(--primary-base);font-weight:800}
-        .progress-line-filled{position:absolute;top:32px;left:40px;height:4px;background:linear-gradient(to right,var(--accent-base),var(--primary-base));border-radius:4px;z-index:0;transition:all 0.6s}
+        /* RTL fill line: grows from RIGHT (step 0) toward LEFT (last step) */
+        .progress-line-filled{position:absolute;top:32px;right:40px;height:4px;background:linear-gradient(to left,var(--accent-base),var(--primary-base));border-radius:4px;z-index:0;transition:all 0.6s}
 
         .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
         .info-group{background:linear-gradient(180deg,rgba(44,62,80,0.03) 0%,#fff 100%);border:1px solid rgba(189,195,199,0.55);border-radius:var(--radius-md);padding:14px 16px}
@@ -166,10 +168,7 @@ $success_msg = $_GET['success'] ?? null;
             <div class="card-header"><i class="fa-solid fa-route"></i><h3>مسار العمل والتقدم</h3></div>
             <?php
                 $totalSteps = count($stageOrder);
-                // In RTL flex: DOM order 6,5,4,3,2,1,0 → visual order RIGHT(6) to LEFT(0)
-                // Stage 0 is rightmost, stage 6 is leftmost
-                // Filled line starts from LEFT (step 0 side) and grows RIGHT toward higher stages
-                // Step position from LEFT = stageIndex / (totalSteps-1)
+               
                 if ($isRejected) {
                     $filledPercent = 0;
                 } elseif ($currentIdx >= 0) {
@@ -177,15 +176,19 @@ $success_msg = $_GET['success'] ?? null;
                 } else {
                     $filledPercent = 0;
                 }
-                // Calculate pixel offset so width never exceeds the track (track = container - 80px)
+                
                 $pxOffset = round($filledPercent * 80 / 100);
             ?>
             <div class="progress-track">
                 <div class="progress-line-filled" style="width:calc(<?= $filledPercent ?>% - <?= $pxOffset ?>px)"></div>
-                <?php for ($i = $totalSteps - 1; $i >= 0; $i--):
+                <?php
+               
+                for ($i = 0; $i < $totalSteps; $i++):
                     $stepClass = '';
                     if ($isRejected) {
-                        $stepClass = ($i > $currentIdx && $currentIdx >= 0) ? 'completed' : (($i === 0) ? 'rejected' : '');
+                        // Mark steps before current as completed, current (last reached) as rejected
+                        if ($i < $currentIdx && $currentIdx >= 0) $stepClass = 'completed';
+                        elseif ($i === $currentIdx) $stepClass = 'rejected';
                     } else {
                         if ($i < $currentIdx) $stepClass = 'completed';
                         elseif ($i === $currentIdx) $stepClass = 'active';
@@ -282,7 +285,7 @@ $success_msg = $_GET['success'] ?? null;
         <div class="card">
             <div class="action-area">
                 <a href="student_researches.php" class="btn-secondary"><i class="fa-solid fa-arrow-right"></i> العودة للقائمة</a>
-                <?php if ($app['current_stage'] === 'under_review' || ($needsMod && $app['current_stage'] !== 'approved' && $app['current_stage'] !== 'rejected')): ?>
+                <?php if ($needsMod && !in_array($app['current_stage'], ['approved', 'rejected', 'approved_by_reviewer'])): ?>
                     <a href="update_application.php?id=<?= $app_id ?>" class="btn-primary"><i class="fa-solid fa-pen-to-square"></i> تحديث البحث</a>
                 <?php endif; ?>
             </div>

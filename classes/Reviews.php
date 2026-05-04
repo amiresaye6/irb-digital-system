@@ -49,10 +49,6 @@ class Reviews {
         return $reviewers;
     }
 
-    /**
-     * Get the current active assignment.
-     * Returns the reviewer only if they haven't timed out or refused.
-     */
     public function getActiveAssignment($application_id) {
         $sql = "SELECT r.*, u.full_name 
                 FROM reviews r 
@@ -67,9 +63,6 @@ class Reviews {
         return ($result && $result->num_rows > 0) ? $result->fetch_assoc() : null;
     }
 
-    /**
-     * Get full history of assignments for this application (Tracking)
-     */
     public function getAssignmentHistory($application_id) {
         $sql = "SELECT r.*, u.full_name 
                 FROM reviews r 
@@ -88,7 +81,10 @@ class Reviews {
     }
 
     public function getAssignedReviewers($application_id) {
-        $sql = "SELECT r.reviewer_id as id, u.full_name, r.decision, r.assignment_status FROM reviews r JOIN users u ON r.reviewer_id = u.id WHERE r.application_id = ?";
+        $sql = "SELECT r.reviewer_id as id, u.full_name, r.decision, r.assignment_status 
+                FROM reviews r 
+                JOIN users u ON r.reviewer_id = u.id 
+                WHERE r.application_id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $application_id);
         $stmt->execute();
@@ -104,7 +100,6 @@ class Reviews {
         if ($this->getActiveAssignment($application_id)) {
             return false;
         }
-
         $sql = "INSERT INTO reviews (application_id, reviewer_id, assigned_by, assignment_status, decision) 
                 VALUES (?, ?, ?, 'awaiting_acceptance', 'pending')";
         $stmt = $this->db->prepare($sql);
@@ -113,7 +108,7 @@ class Reviews {
     }
 
     /**
-     * Get reviewer's ACCEPTED assignments only (their active work queue).
+     * Reviewer's ACCEPTED assignments — their active work queue.
      */
     public function getReviewerAssignments($reviewer_id) {
         $sql = "
@@ -135,12 +130,10 @@ class Reviews {
             WHERE r.reviewer_id = ? AND r.assignment_status = 'accepted'
             ORDER BY a.created_at DESC
         ";
-        
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $reviewer_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
         $assignments = [];
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
@@ -153,7 +146,9 @@ class Reviews {
         return $assignments;
     }
 
-    
+    /**
+     * Assignments awaiting reviewer acceptance.
+     */
     public function getPendingAssignments($reviewer_id) {
         $sql = "
             SELECT 
@@ -174,12 +169,10 @@ class Reviews {
             WHERE r.reviewer_id = ? AND r.assignment_status = 'awaiting_acceptance'
             ORDER BY r.assigned_at DESC
         ";
-        
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $reviewer_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
         $assignments = [];
         if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
@@ -192,7 +185,6 @@ class Reviews {
         return $assignments;
     }
 
-  
     public function acceptAssignment($review_id, $reviewer_id) {
         $sql = "UPDATE reviews SET assignment_status = 'accepted' WHERE id = ? AND reviewer_id = ? AND assignment_status = 'awaiting_acceptance'";
         $stmt = $this->db->prepare($sql);
@@ -201,7 +193,6 @@ class Reviews {
         return $stmt->affected_rows > 0;
     }
 
-    
     public function refuseAssignment($review_id, $reviewer_id, $reason) {
         $sql = "UPDATE reviews SET assignment_status = 'refused', refusal_reason = ? WHERE id = ? AND reviewer_id = ? AND assignment_status = 'awaiting_acceptance'";
         $stmt = $this->db->prepare($sql);
@@ -267,13 +258,12 @@ class Reviews {
     }
 
     public function submitReviewDecision($application_id, $reviewer_id, $decision, $comment) {
-        $check_sql = "SELECT current_stage FROM applications WHERE id = ?";
-        $check_stmt = $this->db->prepare($check_sql);
+        // Guard: cannot modify after final approval
+        $check_stmt = $this->db->prepare("SELECT current_stage FROM applications WHERE id = ?");
         $check_stmt->bind_param("i", $application_id);
         $check_stmt->execute();
-        $check_result = $check_stmt->get_result();
-        $app = $check_result->fetch_assoc();
-        
+        $app = $check_stmt->get_result()->fetch_assoc();
+
         if (!$app || $app['current_stage'] === 'approved') {
             return ['success' => false, 'message' => 'لا يمكن تعديل القرار بعد الاعتماد النهائي'];
         }
@@ -287,59 +277,81 @@ class Reviews {
             return ['success' => false, 'message' => 'يجب إضافة تعليقات عند الرفض أو طلب التعديل'];
         }
 
-        // Get review id — MUST be accepted assignment
-        $rev_sql = "SELECT id FROM reviews WHERE application_id = ? AND reviewer_id = ? AND assignment_status = 'accepted'";
-        $rev_stmt = $this->db->prepare($rev_sql);
+        // Must be an accepted assignment
+        $rev_stmt = $this->db->prepare(
+            "SELECT id FROM reviews WHERE application_id = ? AND reviewer_id = ? AND assignment_status = 'accepted'"
+        );
         $rev_stmt->bind_param("ii", $application_id, $reviewer_id);
         $rev_stmt->execute();
-        $rev_result = $rev_stmt->get_result();
-        $review = $rev_result->fetch_assoc();
-        
+        $review = $rev_stmt->get_result()->fetch_assoc();
+
         if (!$review) {
             return ['success' => false, 'message' => 'لم يتم العثور على المراجعة أو لم يتم قبول الإسناد بعد'];
         }
         $review_id = $review['id'];
 
-        // Update decision
-        $sql = "UPDATE reviews SET decision = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("si", $decision, $review_id);
-        
-        if ($stmt->execute()) {
-            // Insert the comment into review_comments
+        // Save the decision
+        $upd_stmt = $this->db->prepare("UPDATE reviews SET decision = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $upd_stmt->bind_param("si", $decision, $review_id);
+
+        if ($upd_stmt->execute()) {
+            // Save comment
             if (!empty(trim($comment))) {
-                $comment_sql = "INSERT INTO review_comments (review_id, comment) VALUES (?, ?)";
-                $comment_stmt = $this->db->prepare($comment_sql);
-                $comment_stmt->bind_param("is", $review_id, $comment);
-                $comment_stmt->execute();
+                $c_stmt = $this->db->prepare("INSERT INTO review_comments (review_id, comment) VALUES (?, ?)");
+                $c_stmt->bind_param("is", $review_id, $comment);
+                $c_stmt->execute();
             }
-            
-            // Check if ALL accepted reviewers approved — then push to manager
-            // Only count 'accepted' reviews; refused/awaiting reviews are excluded
-            $check_all = "SELECT 
-                COUNT(*) as total, 
-                SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as approved_count 
-                FROM reviews 
-                WHERE application_id = ? AND assignment_status = 'accepted'";
-            $ca_stmt = $this->db->prepare($check_all);
+
+            require_once __DIR__ . '/Applications.php';
+
+            // ── REJECTED: immediately lock the application ──────────────────
+            if ($decision === 'rejected') {
+                $r_stmt = $this->db->prepare(
+                    "UPDATE applications SET current_stage = 'rejected'
+                     WHERE id = ? AND current_stage NOT IN ('approved','rejected')"
+                );
+                $r_stmt->bind_param("i", $application_id);
+                $r_stmt->execute();
+
+                // Notify student
+                $appDetails = $this->getApplicationDetails($application_id);
+                $s_stmt = $this->db->prepare("SELECT student_id FROM applications WHERE id = ?");
+                $s_stmt->bind_param("i", $application_id);
+                $s_stmt->execute();
+                $s_row = $s_stmt->get_result()->fetch_assoc();
+                if ($s_row && $appDetails) {
+                    Applications::createNotification(
+                        $this->db,
+                        $s_row['student_id'],
+                        $application_id,
+                        "تم رفض بحثك رقم ({$appDetails['serial_number']}) من قبل المراجع. يرجى مراجعة ملاحظات المراجعة."
+                    );
+                }
+                return ['success' => true, 'message' => 'تم حفظ قرار الرفض بنجاح'];
+            }
+
+            // ── ALL APPROVED: promote to manager ──────────────────────────
+            $ca_stmt = $this->db->prepare(
+                "SELECT COUNT(*) as total,
+                 SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as approved_count
+                 FROM reviews WHERE application_id = ? AND assignment_status = 'accepted'"
+            );
             $ca_stmt->bind_param("i", $application_id);
             $ca_stmt->execute();
             $ca_res = $ca_stmt->get_result()->fetch_assoc();
-            
+
             if ($ca_res && $ca_res['total'] > 0 && $ca_res['total'] == $ca_res['approved_count']) {
-                $upd_stage = "UPDATE applications SET current_stage = 'approved_by_reviewer' WHERE id = ?";
-                $upd_stmt = $this->db->prepare($upd_stage);
-                $upd_stmt->bind_param("i", $application_id);
-                if ($upd_stmt->execute()) {
-                    require_once __DIR__ . '/Applications.php';
-                    $mgr_sql = "SELECT id FROM users WHERE role = 'manager'";
-                    $mgr_res = $this->db->query($mgr_sql);
+                $stage_stmt = $this->db->prepare(
+                    "UPDATE applications SET current_stage = 'approved_by_reviewer' WHERE id = ?"
+                );
+                $stage_stmt->bind_param("i", $application_id);
+                if ($stage_stmt->execute()) {
+                    $mgr_res = $this->db->query("SELECT id FROM users WHERE role = 'manager'");
                     if ($mgr_res && $mgr_res->num_rows > 0) {
                         $appDetails = $this->getApplicationDetails($application_id);
-                        $serial = $appDetails ? $appDetails['serial_number'] : '';
+                        $serial  = $appDetails ? $appDetails['serial_number'] : '';
                         $message = "تمت الموافقة على البحث رقم ({$serial}) من قبل جميع المراجعين ويحتاج لاعتمادك النهائي.";
-                        
-                        while($mgr = $mgr_res->fetch_assoc()) {
+                        while ($mgr = $mgr_res->fetch_assoc()) {
                             Applications::createNotification($this->db, $mgr['id'], $application_id, $message);
                         }
                     }

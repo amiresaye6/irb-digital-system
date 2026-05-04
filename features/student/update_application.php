@@ -13,10 +13,11 @@ $student_id = $_SESSION['user_id'];
 $app_id = intval($_GET['id']);
 $app = $appObj->getApplicationFullDetails($app_id, $student_id);
 if (!$app) { die("البحث غير موجود أو لا تملك صلاحية تعديله."); }
-if ($app['current_stage'] === 'approved' || $app['current_stage'] === 'rejected') {
+
+if (in_array($app['current_stage'], ['approved', 'rejected', 'approved_by_reviewer'])) {
     header("Location: student_research_details.php?id=$app_id"); exit;
 }
-if ($app['current_stage'] !== 'under_review' && !$appObj->hasNeedsModification($app_id)) {
+if (!$appObj->hasNeedsModification($app_id)) {
     header("Location: student_research_details.php?id=$app_id"); exit;
 }
 
@@ -67,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_app'])) {
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
     require_once __DIR__ . '/../../classes/Database.php';
+    require_once __DIR__ . '/../../classes/Reviews.php';
     $database = new Database();
     $db = $database->conn;
 
@@ -99,6 +101,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_app'])) {
     if ($uploadedCount > 0) $hasChanges = true;
 
     if ($hasChanges) {
+        // Notify the assigned reviewer(s) that the student submitted a revision
+        $reviewsObj = new Reviews();
+        $assignedReviewers = $reviewsObj->getAssignedReviewers($app_id);
+        foreach ($assignedReviewers as $rv) {
+            if ($rv['assignment_status'] === 'accepted' && $rv['decision'] === 'needs_modification') {
+                Applications::createNotification(
+                    $db,
+                    $rv['id'],
+                    $app_id,
+                    "قام الباحث بتحديث بحثه رقم ({$app['serial_number']}) بعد طلب التعديل. يرجى مراجعة المستندات المحدثة."
+                );
+            }
+        }
         header("Location: student_research_details.php?id=$app_id&success=1");
     } else {
         header("Location: update_application.php?id=$app_id&error=" . urlencode('لم يتم إجراء أي تغييرات'));

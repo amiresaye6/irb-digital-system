@@ -30,6 +30,7 @@ if (!empty($app['co_investigators'])) {
 
 $isBlinded = !empty($app['is_blinded']);
 $isFinalApproved = ($review['current_stage'] === 'approved');
+$isRejected = ($review['current_stage'] === 'rejected');
 
 $docLabels = [
     'protocol' => ['بروتوكول البحث', 'fa-file-medical', '#2c3e50'],
@@ -149,6 +150,16 @@ $success_msg = $_GET['success'] ?? null;
                 <div>
                     <div style="font-size:1.1rem;">تم الاعتماد النهائي من الإدارة</div>
                     <div style="font-size:0.85rem;opacity:0.9;font-weight:500;">هذا البحث حاصل على الموافقة النهائية ولا يمكن تعديل القرار.</div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($isRejected): ?>
+            <div class="final-banner" style="margin-bottom:20px; background:linear-gradient(135deg,#cf0f2c 0%,#c42817 100%); border-color:#e74c3c;">
+                <i class="fa-solid fa-ban" style="color:#e74c3c;"></i>
+                <div>
+                    <div style="font-size:1.1rem;">تم الرفض النهائي</div>
+                    <div style="font-size:0.85rem;opacity:0.9;font-weight:500;">هذا البحث مرفوض نهائياً من سيادتكم ولا يمكن تعديل القرار.</div>
                 </div>
             </div>
         <?php endif; ?>
@@ -276,7 +287,7 @@ $success_msg = $_GET['success'] ?? null;
         <div class="card">
             <div class="action-area">
                 <a href="assigned_reserches.php" class="btn-secondary"><i class="fa-solid fa-arrow-right"></i> العودة للقائمة</a>
-                <?php if (!$isFinalApproved): ?>
+                <?php if (!$isFinalApproved && !$isRejected): ?>
                     <a href="submit_decision.php?application_id=<?= $application_id ?>" class="btn-primary">
                         <i class="fa-solid fa-gavel"></i>
                         <?= ($review['decision'] === 'pending') ? 'إضافة قرار المراجعة' : 'تعديل قرار المراجعة' ?>

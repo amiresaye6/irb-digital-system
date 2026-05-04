@@ -161,9 +161,9 @@ CREATE TABLE certificates (
 );
 
 
-ALTER TABLE certificates 
-ADD COLUMN student_id INT AFTER application_id,
-ADD FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE;
+-- ALTER TABLE certificates 
+-- ADD COLUMN student_id INT AFTER application_id,
+-- ADD FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE;
 
 
 CREATE TABLE signatures (
