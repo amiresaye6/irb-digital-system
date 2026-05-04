@@ -212,6 +212,7 @@ $data = $_SESSION['form_data'] ?? [];
 
         .step-buttons {
             display: flex;
+            flex-direction: column;
             gap: 15px;
             margin-top: 20px;
         }
@@ -233,6 +234,10 @@ $data = $_SESSION['form_data'] ?? [];
             background-color: var(--primary-base);
         }
 
+        .btn-next {
+            width : 100%;
+        }
+
         .btn-next:hover, .btn-prev:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
@@ -244,6 +249,10 @@ $data = $_SESSION['form_data'] ?? [];
 
         .btn-next:hover {
             background-color: var(--accent-dark);
+        }
+
+        #errorsPage1 {
+            color : red;
         }
 
         @media (max-width: 1000px) {
@@ -382,7 +391,9 @@ $data = $_SESSION['form_data'] ?? [];
         </div>
 
         <div class="step-buttons">
-            <button type="button" class="btn-next" onclick="goToStep2()">التالي</button>
+            <button type="button" class="btn-next full-width" onclick="goToStep2()">التالي</button>
+            <div id="errorsPage1" class="full-width"></div>
+            
         </div>
         </div>
 
@@ -449,15 +460,52 @@ $data = $_SESSION['form_data'] ?? [];
 </div>
 <script>
 function goToStep2() {
-    document.getElementById('step1').classList.remove('active');
-    document.getElementById('step2').classList.add('active');
-    window.scrollTo(0, 0);
+    if(validateForm()){
+        const errorsPage1 = document.getElementById('errorsPage1');
+        errorsPage1.innerHTML = "";
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        window.scrollTo(0, 0);
+    }
+  
 }
 
 function goToStep1() {
     document.getElementById('step2').classList.remove('active');
     document.getElementById('step1').classList.add('active');
     window.scrollTo(0, 0);
+}
+
+function validateForm() {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const keywords = document.getElementById('keywords_hidden').value.trim();
+    const pi = document.querySelector('input[name="principal_investigator"]').value.trim();
+    const coInvestigators = document.getElementById('co_investigators_hidden').value.trim();
+    const errorsPage1 = document.getElementById('errorsPage1');
+    let msg = "";
+
+    if (title.length < 3 || title.length > 80) {
+        msg = "عنوان البحث يجب أن يكون بين 3 و 80 حرفًا.";
+    }
+
+    else if (keywords.split(',').length < 5) {
+        msg = "يرجى إدخال 5 كلمات مفتاحية على الأقل.";
+    }
+
+    else if (pi.length < 3 || pi.length > 80) {
+        msg = "اسم الباحث الرئيسي يجب أن يكون بين 3 و 80 حرفًا.";
+    }
+
+    else if (coInvestigators.length === 0) {
+        msg = "يرجى إدخال اسماء الباحثين المساعدين.";
+    }
+
+    if(msg.length>0){
+        errorsPage1.innerHTML = `<h5>${msg}</h5>`;
+        return false
+    }
+
+    return true;
 }
 
 function addInvestigatorRow() {
@@ -568,6 +616,7 @@ document.addEventListener("change", function(e){
         buildCoInvestigators();
     }
 });
+
 document.querySelectorAll('input[type="file"]').forEach(input => {
     input.addEventListener('change', function() {
         const statusIndicator = this.parentElement.querySelector('.upload-status');
@@ -588,6 +637,7 @@ document.querySelectorAll('input[type="file"]').forEach(input => {
         }
     });
 });
+
 </script>
 </body>
 </html>
