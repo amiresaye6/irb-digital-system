@@ -37,17 +37,30 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
             $conn->query("UPDATE reviews SET decision = 'approved' WHERE id = $review_id");
             $conn->query("UPDATE applications SET current_stage = 'approved' WHERE id = $application_id");
 
-            $cert_num = "CERT-" . date('Y') . "-" . str_pad($application_id, 5, '0', STR_PAD_LEFT);
-            $manager_id = $_SESSION['user_id'] ?? 11;
-            $conn->query("INSERT IGNORE INTO certificates (application_id, student_id, manager_id, certificate_number, issued_to_name) 
-                        VALUES ($application_id, $student_id, $manager_id, '$cert_num', '$student_name')");
+            $currentYear = date('Y');
 
-            $msg = "مبروك! تم اعتماد بحثك ذو الرقم التسلسلي ($serial_num)نهائياً. وتم إصدار شهادة رقم ($cert_num) باسمك. يمكنك الآن تحميل شهادتك .";
-            $stmt = $conn->prepare("INSERT INTO notifications (user_id, application_id, message, channel) VALUES (?, ?, ?, 'system')");
-            $stmt->bind_param("iis", $student_id, $application_id, $msg);
-            $stmt->execute();
+            $sql_count = "SELECT COUNT(*) as total FROM certificates WHERE YEAR(issued_at) = ?";
+            $stmt_count = $conn->prepare($sql_count);
+            $stmt_count->bind_param("s", $currentYear);
+            $stmt_count->execute();
+            $res_count = $stmt_count->get_result();
+            $row_count = $res_count->fetch_assoc();
 
-        } elseif ($action == 'return') {
+            $nextNumber = $row_count['total'] + 1;
+
+            $cert_num = "CERT-" . $currentYear . "-" . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+            $manager_id = $_SESSION['user_id']; 
+
+            $stmt_cert = $conn->prepare("INSERT IGNORE INTO certificates (application_id, student_id, manager_id, certificate_number, issued_to_name, issued_at) VALUES (?, ?, ?, ?, ?, NOW())");
+            $stmt_cert->bind_param("iiiss", $application_id, $student_id, $manager_id, $cert_num, $student_name);
+            $stmt_cert->execute();
+
+            $msg = "مبروك! تم اعتماد بحثك ذو الرقم التسلسلي ($serial_num) نهائياً. وتم إصدار شهادة رقم ($cert_num) باسمك.";
+            $stmt_notif = $conn->prepare("INSERT INTO notifications (user_id, application_id, message, channel) VALUES (?, ?, ?, 'system')");
+            $stmt_notif->bind_param("iis", $student_id, $application_id, $msg);
+            $stmt_notif->execute();
+            }
+            elseif ($action == 'return') {
             $conn->query("UPDATE reviews SET decision = 'needs_modification' WHERE id = $review_id");
             $conn->query("UPDATE applications SET current_stage = 'under_review' WHERE id = $application_id");
 
