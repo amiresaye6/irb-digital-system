@@ -160,12 +160,6 @@ if (session_status() === PHP_SESSION_NONE) {
                     <span>إدارة المدفوعات</span>
                 </a>
             </li>
-             <li class="menu-item">
-                <a href="/irb-digital-system/features/admin/application_details.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/application_details.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>تفاصيل الطلب</span>
-                </a>
-            </li>
             <li class="menu-item">
                 <a href="/irb-digital-system/features/admin/system_logs.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/system_logs.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-list-check"></i>

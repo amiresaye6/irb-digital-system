@@ -3,7 +3,6 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . "/../../classes/Auth.php";
-// Auth::checkRole(['admin']);
 Auth::checkRole(['admin', 'super_admin']);
 $is_super_admin = ($_SESSION['role'] === 'super_admin');
 $db = new Database();
@@ -15,11 +14,12 @@ $pendingUsers = [];
 $activeUsers = [];
 
 $roleTranslations = [
-    'admin'          => 'مدير نظام',
-    'manager'        => 'مدير عام',
+    'admin'          => 'مدير النظام',
+    'manager'        => 'مدير اللجنة',
     'reviewer'       => 'مُراجع',
     'sample_officer' => 'مسؤول عينات',
-    'student'        => 'باحث / طالب'
+    'student'        => 'باحث / طالب',
+    'super_admin'    => 'مدير عام'
 ];
 
 foreach ($allUsers as $u) {
@@ -87,7 +87,9 @@ foreach ($allUsers as $u) {
     <div class="content">
         <div class="page-header">
             <h2 class="page-title"><i class="fa-solid fa-users-gear"></i> إدارة المستخدمين</h2>
-            <a href="add_user.php" class="btn-add-user" style="background:var(--accent-base); color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-weight:800;">إضافة مستخدم</a>
+             <?php if(!$is_super_admin): ?>
+              <a href="add_user.php" class="btn-add-user" style="background:var(--accent-base); color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-weight:800;">إضافة مستخدم</a>
+             <?php endif; ?>
         </div>
 
         <div class="toolbar-card">
@@ -101,10 +103,12 @@ foreach ($allUsers as $u) {
                    
                     <option value="all">الكل</option>
                     <option value="student">باحث / طالب</option>
-                    <option value="admin">مدير نظام</option>
-                   <option value="manager">مدير عام</option>
-                   <option value="reviewer">مُراجع</option>
+                    <option value="admin">مدير النظام</option>
+                    <option value="super_admin">مدير عام</option>
+                    <option value="manager">مدير اللجنة</option>
+                    <option value="reviewer">مُراجع</option>
                     <option value="sample_officer">مسؤول عينات</option>
+                    
                 </select>
             </div>
         </div>
@@ -117,7 +121,9 @@ foreach ($allUsers as $u) {
                         <th>المستخدم</th>
                         <th>بيانات التواصل</th>
                         <th>الصلاحية</th>
+                         <?php if(!$is_super_admin): ?>
                         <th>الإجراءات</th>
+                         <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -186,12 +192,9 @@ foreach ($allUsers as $u) {
             const rowSearchText = tr.getAttribute('data-search');
             const rowRole = tr.getAttribute('data-role');
 
-            // شرط السيرش: هل النص موجود؟
             const matchesSearch = rowSearchText.includes(searchTerm);
-            // شرط الفلتر: هل الدور مطابق أو المختار هو "الكل"؟
             const matchesRole = (roleTerm === 'all' || rowRole === roleTerm);
 
-            // لو الشرطين تحققوا اظهر الصف، غير كدة اخفيه
             if (matchesSearch && matchesRole) {
                 tr.style.display = '';
             } else {
@@ -200,7 +203,6 @@ foreach ($allUsers as $u) {
         });
     }
 
-    // تشغيل الدالة لما المستحدم يكتب أو يغير الفلتر
     mainSearch.addEventListener('input', filterTable);
     roleFilter.addEventListener('change', filterTable);
 </script>
