@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin'); 
+Auth::checkRole('manager'); 
 
 if (!isset($_GET['application_id']) || empty($_GET['application_id'])) {
     header("Location: assign_reviewers.php");

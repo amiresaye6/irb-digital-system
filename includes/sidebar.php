@@ -102,32 +102,15 @@ if (session_status() === PHP_SESSION_NONE) {
             </li>
         <?php endif; ?>
 
+        <!-- Admin Role Links (Restricted) -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة الإدارة</span>
             </li>
             <li class="menu-item">
-                <a href="/irb-digital-system/features/admin/manage_users.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/manage_users.php', '/irb-digital-system/features/admin/add_user.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-users-gear"></i>
-                    <span>إدارة المستخدمين</span>
-                </a>
-            </li>
-            <li class="menu-item">
                 <a href="/irb-digital-system/features/admin/pending_applications.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/pending_applications.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>الطلبات قيد المراجعة</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="/irb-digital-system/features/reviewer/assign_reviewers.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/assign_reviewers.php', '/irb-digital-system/features/reviewer/assign_form.php', '/irb-digital-system/features/reviewer/submit_assignment.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>تعيين المراجعين</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
-                    <i class="fa-solid fa-money-check-dollar"></i>
-                    <span>إدارة المدفوعات</span>
                 </a>
             </li>
             <li class="menu-item">
@@ -137,6 +120,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 </a>
             </li>
         <?php endif; ?>
+
         <!-- Super Admin Role Links -->
           <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
             <li class="menu-category">
@@ -158,6 +142,12 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-money-check-dollar"></i>
                     <span>إدارة المدفوعات</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/reviewer/history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/history.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>سجل المراجعات</span>
                 </a>
             </li>
             <li class="menu-item">
@@ -198,6 +188,7 @@ if (session_status() === PHP_SESSION_NONE) {
             </li>
         <?php endif; ?>
 
+        <!-- Reviewer Role Links -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'reviewer'): ?>
             <?php
                 if (!isset($sidebarAppObj)) {
@@ -244,10 +235,39 @@ if (session_status() === PHP_SESSION_NONE) {
             </li>
         <?php endif; ?>
 
+        <!-- Manager Role Links (Expanded) -->
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'manager'): ?>
             <li class="menu-category">
                 <span class="category-label">منطقة المدير</span>
             </li>
+            
+            <!-- Pages Moved From Admin -->
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/manage_users.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/manage_users.php', '/irb-digital-system/features/admin/add_user.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>إدارة المستخدمين</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/reviewer/assign_reviewers.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/assign_reviewers.php', '/irb-digital-system/features/reviewer/assign_form.php', '/irb-digital-system/features/reviewer/submit_assignment.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>تعيين المراجعين</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/reviewer/history.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/reviewer/history.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>سجل المراجعات</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/irb-digital-system/features/admin/payments.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/admin/payments.php']) ? ' is-active' : '' ?>">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>إدارة المدفوعات</span>
+                </a>
+            </li>
+
+            <!-- Original Manager Pages -->
             <li class="menu-item">
                 <a href="/irb-digital-system/features/manager/upload_signature.php" class="menu-link<?= irb_sidebar_is_active(['/irb-digital-system/features/manager/upload_signature.php']) ? ' is-active' : '' ?>">
                     <i class="fa-solid fa-file-signature"></i>

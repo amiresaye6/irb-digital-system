@@ -362,5 +362,41 @@ class Reviews {
         }
         return ['success' => false, 'message' => 'حدث خطأ أثناء حفظ القرار'];
     }
+
+    /**
+     * Get all reviews across the system for the Admin Dashboard
+     */
+    public function getAllSystemReviews() {
+        $sql = "SELECT 
+                    r.id as review_id,
+                    r.assignment_status,
+                    r.decision,
+                    r.assigned_at,
+                    r.reviewed_at,
+                    r.refusal_reason,
+                    a.id as application_id,
+                    a.serial_number,
+                    a.title,
+                    u_student.full_name as student_name,
+                    u_reviewer.full_name as reviewer_name,
+                    u_reviewer.department as reviewer_department
+                FROM reviews r
+                JOIN applications a ON r.application_id = a.id
+                JOIN users u_student ON a.student_id = u_student.id
+                JOIN users u_reviewer ON r.reviewer_id = u_reviewer.id
+                ORDER BY r.assigned_at DESC";
+                
+        $result = $this->db->query($sql);
+        $reviews = [];
+        
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                // Attach the comments to each review for the modal
+                $row['comments'] = $this->getReviewComments($row['review_id']);
+                $reviews[] = $row;
+            }
+        }
+        return $reviews;
+    }
 }
 ?>

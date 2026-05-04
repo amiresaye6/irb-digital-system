@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "../../init.php";
-Auth::checkRole(['admin']);
+Auth::checkRole(['manager']);
 $user_id = $_GET['id'] ?? null;
 
 if($user_id) {
