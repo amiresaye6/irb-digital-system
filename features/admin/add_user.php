@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once "../../init.php";
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin');
+Auth::checkRole('manager');
 
 $dbobj   = new Database();
 $success = $_SESSION['success'] ?? '';

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . "/../../init.php";
-Auth::checkRole(['admin', 'super_admin']);
+Auth::checkRole(['manager', 'super_admin']);
 
 require_once __DIR__ . '/../../classes/Reviews.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
@@ -9,7 +9,6 @@ require_once __DIR__ . '/../../includes/pagination.php';
 $reviewsObj = new Reviews();
 $allReviews = $reviewsObj->getAllSystemReviews();
 
-// 1. Helper function for Assignment Status (قبول/رفض الإسناد)
 function getAssignmentBadge($status, $date)
 {
     $dateHtml = '';
@@ -32,7 +31,6 @@ function getAssignmentBadge($status, $date)
     }
 }
 
-// 2. Helper function for Academic Decision (القرار الأكاديمي)
 function getDecisionBadge($assignment_status, $decision)
 {
     // If they haven't accepted the review, there is no academic decision yet

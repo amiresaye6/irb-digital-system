@@ -2,7 +2,7 @@
 session_start();
 
 require_once __DIR__ . "/../../classes/Auth.php";
-Auth::checkRole('admin');
+Auth::checkRole('manager');
 
 require_once __DIR__ . '/../../classes/Reviews.php';
 

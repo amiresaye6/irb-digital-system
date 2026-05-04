@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../init.php';
 require_once __DIR__ . '/../../includes/irb_helpers.php';
 require_once __DIR__ . "/../../classes/Auth.php";
 // Auth::checkRole(['admin']);
-Auth::checkRole(['admin', 'super_admin']);
+Auth::checkRole(['manager', 'super_admin']);
 $is_super_admin = ($_SESSION['role'] === 'super_admin');
 $db = new Database();
 
